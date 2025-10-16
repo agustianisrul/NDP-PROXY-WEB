@@ -1,0 +1,16 @@
+@if (user$ | async; as user) {
+<div class="layout-wrapper" [ngClass]="containerClass">
+    <app-topheader [fullName]="user.fullname"></app-topheader>
+    <app-sidebar [model]="menuItem" (logout)="logout()"></app-sidebar>
+    <div class="layout-main-container">
+        <div class="layout-main">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+    <div class="layout-mask animate-fadein"></div>
+</div>
+} @else {
+<div class="not-loggedin">
+    <app-loading-panel />
+</div>
+}

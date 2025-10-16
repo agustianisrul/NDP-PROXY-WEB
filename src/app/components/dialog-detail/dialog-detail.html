@@ -1,0 +1,76 @@
+<p-dialog [(visible)]="visible" [modal]="true" [closable]="false" [style]="{ width: '500px' }">
+    <ng-template pTemplate="header">
+        <h3>{{ title }}</h3>
+    </ng-template>
+
+    <!-- ================= View/Delete Mode ================= -->
+    <div *ngIf="mode === 'view' || mode === 'delete'" class="p-fluid">
+        <div *ngFor="let header of headers" class="p-field">
+            <span class="font-bold">{{ header.label }}</span>
+            <div>{{ getDisplayValue(header) }}</div>
+        </div>
+    </div>
+
+    <!-- ================= Create/Edit Mode ================= -->
+    @if (mode === 'create' || mode === 'edit') {
+    <form [formGroup]="form" class="p-fluid">
+        <ng-container *ngFor="let header of headers">
+            <div class="p-field">
+                <label [for]="header.key">{{ header.label }}</label>
+
+                <!-- STRING -->
+                @if (!header.type || header.type === 'string') {
+                <input pInputText formControlName="{{ header.key }}" [id]="header.key" />
+                }
+
+                <!-- NUMBER -->
+                @if (header.type === 'number') {
+                <input type="number" pInputText formControlName="{{ header.key }}" [id]="header.key" />
+                }
+
+                <!-- BOOLEAN -->
+                @if (header.type === 'boolean') {
+                <p-checkbox formControlName="{{ header.key }}" [binary]="true" [inputId]="header.key"></p-checkbox>
+                }
+
+                <!-- DATE -->
+                @if (header.type === 'date') {
+                <p-datepicker
+                    formControlName="{{ header.key }}"
+                    [dateFormat]="header.format || 'yy-mm-dd'"
+                    [showIcon]="true"
+                    [id]="header.key"
+                ></p-datepicker>
+                }
+
+                <!-- ENUM / VALUES -->
+                @if (header.values) {
+                <p-select
+                    [options]="header.values | keyvalue"
+                    formControlName="{{ header.key }}"
+                    optionLabel="value"
+                    optionValue="key"
+                    [id]="header.key"
+                >
+                </p-select>
+                }
+
+                <!-- OPTIONS ARRAY -->
+                @if (header.options) {
+                <p-select [options]="header.options" formControlName="{{ header.key }}" optionLabel="label" optionValue="id" [id]="header.key">
+                </p-select>
+                }
+            </div>
+        </ng-container>
+    </form>
+    }
+
+    <ng-template pTemplate="footer">
+        <button pButton type="button" label="Cancel" class="p-button-text" (click)="onCancel()"></button>
+        @if (mode === 'create' || mode === 'edit') {
+        <button pButton type="button" label="Save" (click)="onSave()"></button>
+        } @if (mode === 'delete') {
+        <button pButton type="button" label="Confirm Delete" class="p-button-danger" (click)="onSave()"></button>
+        }
+    </ng-template>
+</p-dialog>

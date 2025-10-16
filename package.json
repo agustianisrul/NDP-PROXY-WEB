@@ -1,52 +1,90 @@
 {
-  "name": "ndp-proxy-web",
-  "version": "0.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:NDP-PROXY-WEB": "node dist/NDP-PROXY-WEB/server/server.mjs"
-  },
-  "prettier": {
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
-  "private": true,
-  "dependencies": {
-    "@angular/common": "^20.1.0",
-    "@angular/compiler": "^20.1.0",
-    "@angular/core": "^20.1.0",
-    "@angular/forms": "^20.1.0",
-    "@angular/platform-browser": "^20.1.0",
-    "@angular/platform-server": "^20.1.0",
-    "@angular/router": "^20.1.0",
-    "@angular/ssr": "^20.1.1",
-    "express": "^5.1.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
-  },
-  "devDependencies": {
-    "@angular/build": "^20.1.1",
-    "@angular/cli": "^20.1.1",
-    "@angular/compiler-cli": "^20.1.0",
-    "@types/express": "^5.0.1",
-    "@types/jasmine": "~5.1.0",
-    "@types/node": "^20.17.19",
-    "jasmine-core": "~5.8.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.8.2"
-  }
+    "name": "ndp-proxy-web",
+    "version": "0.0.0",
+    "scripts": {
+        "ng": "ng",
+        "start": "ng serve",
+        "build:local": "ng build --configuration development",
+        "build:production": "ng build",
+        "watch": "ng build --watch --configuration development",
+        "test": "ng test",
+        "serve:ssr": "node dist/NDP-PROXY-WEB/server/server.mjs",
+        "start:local": "npm run build:local && npm run serve:ssr",
+        "start:production": "npm run build:production && cross-env NODE_ENV=production npm run serve:ssr"
+    },
+    "prettier": {
+        "printWidth": 150,
+        "singleQuote": true,
+        "tabWidth": 4,
+        "overrides": [
+            {
+                "files": "*.html",
+                "options": {
+                    "parser": "angular",
+                    "tabWidth": 4
+                }
+            }
+        ]
+    },
+    "private": true,
+    "dependencies": {
+        "@angular/common": "^20.1.0",
+        "@angular/compiler": "^20.1.0",
+        "@angular/core": "^20.1.0",
+        "@angular/forms": "^20.1.0",
+        "@angular/platform-browser": "^20.1.0",
+        "@angular/platform-server": "^20.1.0",
+        "@angular/router": "^20.1.0",
+        "@angular/ssr": "^20.1.1",
+        "@primeuix/themes": "^1.2.5",
+        "bcryptjs": "^3.0.2",
+        "chart.js": "^4.5.1",
+        "cookie-parser": "^1.4.7",
+        "cookie-session": "^2.1.1",
+        "dotenv": "^17.2.3",
+        "express": "^5.1.0",
+        "jose": "^6.1.0",
+        "knex": "^3.1.0",
+        "luxon": "^3.7.2",
+        "primeicons": "^7.0.0",
+        "primeng": "^20.2.0",
+        "rxjs": "~7.8.0",
+        "tailwindcss-primeui": "^0.6.1",
+        "tslib": "^2.3.0",
+        "uuid": "^13.0.0",
+        "zone.js": "~0.15.0"
+    },
+    "devDependencies": {
+        "@angular/build": "^20.1.1",
+        "@angular/cli": "^20.1.1",
+        "@angular/compiler-cli": "^20.1.0",
+        "@types/cookie-parser": "^1.4.9",
+        "@types/cookie-session": "^2.0.49",
+        "@types/express": "^5.0.1",
+        "@types/jasmine": "~5.1.0",
+        "@types/knex": "^0.15.2",
+        "@types/luxon": "^3.7.1",
+        "@types/node": "^20.17.19",
+        "autoprefixer": "^10.4.21",
+        "cross-env": "^10.1.0",
+        "jasmine-core": "~5.8.0",
+        "karma": "~6.4.0",
+        "karma-chrome-launcher": "~3.2.0",
+        "karma-coverage": "~2.2.0",
+        "karma-jasmine": "~5.1.0",
+        "karma-jasmine-html-reporter": "~2.1.0",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^3.4.14",
+        "typescript": "~5.8.2"
+    },
+    "optionalDependencies": {
+        "better-sqlite3": "^12.2.0",
+        "mysql": "^2.18.1",
+        "mysql2": "^3.15.0",
+        "oracledb": "^6.9.0",
+        "pg": "^8.16.3",
+        "pg-query-stream": "^4.10.3",
+        "sqlite3": "^5.1.7",
+        "tedious": "^18.6.1"
+    }
 }
