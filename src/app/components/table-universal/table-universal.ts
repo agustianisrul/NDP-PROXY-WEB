@@ -44,10 +44,10 @@ export class TableUniversal implements OnInit {
 
     fetchData(): void {
         this.loading = true;
-        this.requestService.postBackend(this.url, {}).subscribe({
+        this.requestService.getBackend(this.url).subscribe({
             next: (res: any) => {
-                this.data = res.data;
-                this.totalRecords = res.data.total;
+                this.data = res.data.data;
+                this.totalRecords = res.data.data.total;
                 this.loading = false;
             },
             error: () => {

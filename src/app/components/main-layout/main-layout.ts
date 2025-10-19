@@ -2,8 +2,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, Renderer2, ViewChild } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
-import { EMPTY, filter, Observable, of, Subscription, switchMap } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
 import { UserSession } from '../../../model/custom-entity/UserSession';
+import { RouterItem } from '../../../model/others/RouterItem';
 import { AuthenticationService } from '../../services/authentication-service';
 import { LayoutService } from '../../services/layout-service';
 import { RequestService } from '../../services/request-service';
@@ -25,19 +26,16 @@ export class MainLayout implements OnInit, OnDestroy {
     @ViewChild(Sidebar) appSidebar!: Sidebar;
     @ViewChild(Topheader) appTopBar!: Topheader;
 
-    user$!: Observable<UserSession | null>;
     menuItem: MenuItem[] = [];
 
     constructor(
         private readonly layoutService: LayoutService,
         private readonly renderer: Renderer2,
         private readonly router: Router,
-        private readonly authService: AuthenticationService,
+        public readonly authService: AuthenticationService,
         private readonly requestService: RequestService,
         @Inject(PLATFORM_ID) private readonly platformId: Object
     ) {
-        this.user$ = this.authService.user$;
-
         if (isPlatformBrowser(this.platformId)) {
             this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
                 if (!this.menuOutsideClickListener) {
@@ -60,29 +58,40 @@ export class MainLayout implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        // refresh menu whenever user changes
-        this.user$
-            .pipe(
-                switchMap((user) => {
-                    console.log('User changed, reloading menu:', user);
-                    if (!user) {
-                        this.menuItem = [];
-                        return EMPTY;
-                    }
-                    if (user.isAdmin) {
-                        this.menuItem = this.buildMenuAdmin();
-                        return EMPTY;
-                    }
-                    if (isPlatformBrowser(this.platformId)) {
-                        return this.requestService.getBackend(`/v2/group/get-group/${user.idgroup}`);
-                    }
-                    return of(null);
-                })
-            )
-            .subscribe({
-                next: (res: any) => (this.menuItem = res.data?.menublob ?? []),
-                error: (err) => console.error(err),
+        this.menuItem = this.buildMenuItem(this.authService.user());
+    }
+
+    private buildMenuItem(userInfo: UserSession | null): MenuItem[] {
+        if (!userInfo) return [];
+        if (userInfo.isAdmin) {
+            return this.buildMenuAdmin();
+        }
+        const tempGroup = this.authService.group();
+        if (!tempGroup) return [];
+        return this.convertToMenuItem(tempGroup.menublob);
+    }
+
+    private convertToMenuItem(routerItem: RouterItem[] | null): MenuItem[] {
+        if (routerItem && routerItem.length > 0) {
+            return routerItem.map((item: RouterItem) => {
+                const tempMenuItem: MenuItem = {};
+                tempMenuItem.label = item.label;
+                if (item.icon) {
+                    tempMenuItem.icon = item.icon;
+                }
+                if (item.routerLink) {
+                    tempMenuItem.routerLink = item.routerLink;
+                }
+                if (item.items && item.items.length > 0) {
+                    tempMenuItem.items = this.convertToMenuItem(item.items);
+                }
+                if (item.roles && item.roles.length > 0) {
+                    tempMenuItem.state = { roles: item.roles };
+                }
+                return tempMenuItem;
             });
+        }
+        return [];
     }
 
     private buildMenuAdmin() {

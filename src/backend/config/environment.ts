@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import { base64url } from 'jose';
 import * as path from 'path';
 
 // determine env file dynamically
@@ -22,7 +21,7 @@ export const config = {
     cookie: {
         name: process.env['COOKIE_NAME'] || 'app_session',
         maxAge: parseInt(process.env['COOKIE_MAX_AGE_MS'] || '3600000', 10),
-        secret: base64url.encode(new TextEncoder().encode(SESSION_SECRET)),
+        secret: SESSION_SECRET, //base64url.encode(new TextEncoder().encode(SESSION_SECRET)),
         secure: false, // process.env['NODE_ENV'] === 'production',
         sameSite: (process.env['SESSION_SAMESITE'] as 'lax' | 'strict' | 'none') || 'lax',
     },

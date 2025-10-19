@@ -22,7 +22,7 @@ export const routes: Routes = [
             { path: 'group', component: Groupmanagement },
             { path: 'role', component: Rolemanagement },
             { path: 'profile', component: Myprofile },
-            // { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
+            { path: 'scheduler', loadChildren: () => import('./pages/scheduler/scheduler-routing-module') },
             // { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ],
     },

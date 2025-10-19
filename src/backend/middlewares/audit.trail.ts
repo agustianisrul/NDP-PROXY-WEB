@@ -14,27 +14,27 @@ export default async function auditMiddleware(req: Request, res: Response, next:
     }
 
     const userInfo: UserSession = (req.session as any).user;
-    let responseBody: any;
-    const oldSend = res.send;
-    (res as any).send = function (body: any) {
-        responseBody = body;
-        return oldSend.apply(res, arguments as any);
+    // let responseBody: any;
+    // const oldSend = res.send;
+    // (res as any).send = function (body: any) {
+    //     responseBody = body;
+    //     return oldSend.apply(res, arguments as any);
+    // };
+    // res.on('finish', () => {
+    const auditTrail: Partial<AuditTrail> = {
+        iduser: userInfo?.iduser || null,
+        httpmethod: req.method,
+        responsestatus: res.statusCode,
+        requesturl: req.originalUrl,
+        created_by: userInfo ? userInfo.iduser : null,
+        created_date: nowJSDate(),
     };
-    res.on('finish', () => {
-        const auditTrail: Partial<AuditTrail> = {
-            iduser: userInfo?.iduser || null,
-            httpmethod: req.method,
-            responsestatus: res.statusCode,
-            requesturl: req.originalUrl,
-            created_by: userInfo ? userInfo.iduser : null,
-            created_date: nowJSDate(),
-        };
-        const auditTrailData: Partial<AuditTrailData> = {
-            requestbody: req.body,
-            responsebody: responseBody,
-        };
-        createAuditTrail(auditTrail, auditTrailData);
-    });
+    const auditTrailData: Partial<AuditTrailData> = {
+        requestbody: req.body,
+        // responsebody: responseBody,
+    };
+    createAuditTrail(auditTrail, auditTrailData);
+    // });
 
     next();
 }

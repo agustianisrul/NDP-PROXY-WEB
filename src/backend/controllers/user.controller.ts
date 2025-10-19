@@ -9,7 +9,6 @@ import { UserSession } from '../../model/custom-entity/UserSession';
 import { nowJSDate } from '../config/date-utils';
 import { GenericRepository } from '../repositories/generic.repository';
 import { ResponseHelper } from '../utils/ResponseHelper';
-import { ApiResponse } from '../utils/apiResponse';
 
 const genericRepository = new GenericRepository();
 
@@ -46,9 +45,9 @@ export async function getAllUsers(req: Request, res: Response) {
                 password: '',
             };
         });
-        return await ResponseHelper.send(res, ApiResponse.success(userInfoList));
+        return ResponseHelper.success(res, userInfoList);
     }
-    await ResponseHelper.send(res, ApiResponse.success(userList));
+    ResponseHelper.success(res);
 }
 
 export async function addUser(req: Request, res: Response) {
@@ -59,7 +58,7 @@ export async function addUser(req: Request, res: Response) {
             { column: 'username', operator: '=', value: requestBodyUser.username },
         ]);
         if (existingUser) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData([], 'Username Already taken!, please use anything else'));
+            return ResponseHelper.error(res, 'Username Already taken!, please use anything else');
         }
         const newPassword = await bcrypt.hash(requestBodyUser.password, 10);
         const uid = uuidv4();
@@ -79,12 +78,11 @@ export async function addUser(req: Request, res: Response) {
         };
         const insertUserList: User[] = await genericRepository.insert<User>('tm_user', payloadInsert);
         if (insertUserList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to add data!'));
+            return ResponseHelper.error(res, 'Unable to add data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error auth.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }
 
@@ -108,12 +106,11 @@ export async function editUser(req: Request, res: Response) {
             { column: 'username', operator: '=', value: requestBodyUser.username },
         ]);
         if (userList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to update data!'));
+            return ResponseHelper.error(res, 'Unable to update data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error auth.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }
 
@@ -124,11 +121,10 @@ export async function deleteUser(req: Request, res: Response) {
             { column: 'username', operator: '=', value: requestBodyUser.username },
         ]);
         if (userList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to delete data!'));
+            return ResponseHelper.error(res, 'Unable to delete data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error auth.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }

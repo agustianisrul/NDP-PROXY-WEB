@@ -6,7 +6,6 @@ import { UserSession } from '../../model/custom-entity/UserSession';
 import { nowJSDate } from '../config/date-utils';
 import { GenericRepository } from '../repositories/generic.repository';
 import { ResponseHelper } from '../utils/ResponseHelper';
-import { ApiResponse } from '../utils/apiResponse';
 
 const genericRepository = new GenericRepository();
 
@@ -20,9 +19,9 @@ export async function getAllGroup(req: Request, res: Response) {
             menublob: group.menublob,
             deleteable: group.deleteable === 1,
         }));
-        return await ResponseHelper.send(res, ApiResponse.success(groupDetailList));
+        return ResponseHelper.success(res, groupDetailList);
     }
-    await ResponseHelper.send(res, ApiResponse.success(groupList));
+    ResponseHelper.success(res);
 }
 
 export async function getGroup(req: Request, res: Response) {
@@ -32,7 +31,7 @@ export async function getGroup(req: Request, res: Response) {
             { column: 'idgroup', operator: '=', value: requestParam },
         ]);
         if (!existingGroup) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData([], 'Group does not exist'));
+            return ResponseHelper.error(res, 'Group does not exist');
         }
 
         const groupDetail: GroupDetail = {
@@ -42,10 +41,9 @@ export async function getGroup(req: Request, res: Response) {
             menublob: existingGroup.menublob,
             deleteable: existingGroup.deleteable === 1,
         };
-        return await ResponseHelper.send(res, ApiResponse.success(groupDetail));
+        return ResponseHelper.success(res, groupDetail);
     } catch (error) {
-        console.error('Error Group.controller function getGroup : ', error);
-        return await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        return ResponseHelper.error(res, error);
     }
 }
 
@@ -57,7 +55,7 @@ export async function addGroup(req: Request, res: Response) {
             { column: 'groupname', operator: '=', value: requestBodyGroup.groupname },
         ]);
         if (existingGroup) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData([], 'Group name Already taken!, please use anything else'));
+            return ResponseHelper.error(res, 'Group name Already taken!, please use anything else');
         }
 
         const payloadInsert: Partial<Group> = {
@@ -69,12 +67,11 @@ export async function addGroup(req: Request, res: Response) {
         };
         const insertGroupList: Group[] = await genericRepository.insert<Group>('tm_group', payloadInsert);
         if (insertGroupList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to add data!'));
+            return ResponseHelper.error(res, 'Unable to add data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error Group.controller : ', error);
-        return await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.success(res, error);
     }
 }
 
@@ -93,12 +90,11 @@ export async function editGroup(req: Request, res: Response) {
             { column: 'idgroup', operator: '=', value: requestBodyGroup.idgroup },
         ]);
         if (GroupList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to update data!'));
+            return ResponseHelper.error(res, 'Unable to update data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error Group.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.success(res, error);
     }
 }
 
@@ -109,11 +105,10 @@ export async function deleteGroup(req: Request, res: Response) {
             { column: 'idgroup', operator: '=', value: requestBodyGroup.idgroup },
         ]);
         if (GroupList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to delete data!'));
+            return ResponseHelper.error(res, 'Unable to delete data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error Group.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.success(res, error);
     }
 }

@@ -11,7 +11,6 @@ import { nowJSDate } from '../config/date-utils';
 import { GenericRepository } from '../repositories/generic.repository';
 import { getAllMenuRolesQuery } from '../repositories/menu.repository';
 import { ResponseHelper } from '../utils/ResponseHelper';
-import { ApiResponse } from '../utils/apiResponse';
 
 const genericRepository = new GenericRepository();
 
@@ -25,14 +24,14 @@ export async function getAllMenu(req: Request, res: Response) {
             iconMenu: menu.iconMenu,
             deleteable: menu.deleteable === 1,
         }));
-        return await ResponseHelper.send(res, ApiResponse.success(menuDetailList));
+        return ResponseHelper.success(res, menuDetailList);
     }
-    await ResponseHelper.send(res, ApiResponse.success(menuList));
+    ResponseHelper.success(res);
 }
 
 export async function getAllMenuIcons(req: Request, res: Response) {
     const iconList: Icon[] = await genericRepository.select<Icon>('tm_icons');
-    await ResponseHelper.send(res, ApiResponse.success(iconList));
+    ResponseHelper.success(res, iconList);
 }
 
 export async function addMenu(req: Request, res: Response) {
@@ -44,7 +43,7 @@ export async function addMenu(req: Request, res: Response) {
             { column: 'nameMenu', operator: '=', value: requestBodyMenu.nameMenu },
         ]);
         if (existingMenu) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData([], 'Menu name Already taken!, please use anything else'));
+            return ResponseHelper.error(res, 'Menu name Already taken!, please use anything else');
         }
 
         const payloadInsert: Partial<Menu> = {
@@ -59,7 +58,7 @@ export async function addMenu(req: Request, res: Response) {
             // Insert into Menu
             const insertMenuList: Menu[] = await genericRepository.insert<Menu>('tm_menus', payloadInsert, trx);
             if (insertMenuList.length === 0) {
-                return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to add data!'));
+                return ResponseHelper.error(res, 'Unable to add data!');
             }
 
             // Insert into menu-role
@@ -70,10 +69,9 @@ export async function addMenu(req: Request, res: Response) {
             await genericRepository.insert('tm_menu_role', tempMenuRole, trx);
         });
 
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error menu.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }
 
@@ -96,7 +94,7 @@ export async function editMenu(req: Request, res: Response) {
             // Insert into Menu
             const updateMenuList: Menu[] = await genericRepository.update<Menu>('tm_menus', payloadUpdate, tempCondition, trx);
             if (updateMenuList.length === 0) {
-                return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to update data!'));
+                return ResponseHelper.error(res, 'Unable to update data!');
             }
             await genericRepository.delete<Menu>('tm_menu_role', tempCondition, trx);
             // Insert into menu-role
@@ -106,10 +104,9 @@ export async function editMenu(req: Request, res: Response) {
             }));
             await genericRepository.insert('tm_menu_role', tempMenuRole, trx);
         });
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error menu.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }
 
@@ -120,12 +117,11 @@ export async function deleteMenu(req: Request, res: Response) {
             { column: 'idMenu', operator: '=', value: requestBodyMenu.idMenu },
         ]);
         if (menuList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to delete data!'));
+            return ResponseHelper.error(res, 'Unable to delete data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error menu.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }
 
@@ -165,11 +161,10 @@ export async function getMenuRole(req: Request, res: Response) {
                     return acc;
                 }, {} as Record<string, MenuRole>)
             );
-            return await ResponseHelper.send(res, ApiResponse.success(menuRoleList));
+            return ResponseHelper.success(res, menuRoleList);
         }
-        await ResponseHelper.send(res, ApiResponse.success(queryResult));
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error menu.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }

@@ -1,6 +1,6 @@
-@if (user$ | async; as user) {
+@if (authService.currentUser) {
 <div class="layout-wrapper" [ngClass]="containerClass">
-    <app-topheader [fullName]="user.fullname"></app-topheader>
+    <app-topheader></app-topheader>
     <app-sidebar [model]="menuItem" (logout)="logout()"></app-sidebar>
     <div class="layout-main-container">
         <div class="layout-main">

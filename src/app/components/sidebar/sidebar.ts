@@ -43,11 +43,15 @@ export class Sidebar {
 
     private mergeWithExtraMenu(): void {
         if (this._model && this._model.length > 0) {
-            this._model = [{ label: '', items: [...this._model, ...this.extraMenu] }];
+            this._model = [
+                {
+                    label: '',
+                    items: [...this._model, ...this.extraMenu],
+                },
+            ];
         } else {
             this._model = [{ label: '', items: this.extraMenu }];
         }
-        console.log('✅ Final sidebar menu:', this._model);
     }
 
     private confirmLogout() {

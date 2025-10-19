@@ -1,12 +1,13 @@
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
+import { Group } from '../../model/base-entity/Group';
+import { Role } from '../../model/base-entity/Role';
 import { User } from '../../model/base-entity/User';
 import { UserSession } from '../../model/custom-entity/UserSession';
 import { Condition } from '../../model/others/ConditionQuery';
 import { config } from '../config/environment';
 import { GenericRepository } from '../repositories/generic.repository';
 import { ResponseHelper } from '../utils/ResponseHelper';
-import { ApiResponse } from '../utils/apiResponse';
 
 const genericRepository = new GenericRepository();
 
@@ -20,13 +21,11 @@ export class AuthController {
             const whereCondition: Condition<User>[] = [{ column: 'username', operator: '=', value: username }];
             const user = await genericRepository.findOne<User>('tm_user', whereCondition);
             if (!user) {
-                await ResponseHelper.send(res, ApiResponse.notFound('Invalid username or password'));
-                return;
+                return ResponseHelper.error(res, 'Invalid username or password');
             }
             const isMatchPassword = await bcrypt.compare(password, user.password);
             if (!isMatchPassword) {
-                await ResponseHelper.send(res, ApiResponse.notFound('Invalid username or password'));
-                return;
+                return ResponseHelper.error(res, 'Invalid username or password');
             }
             const userSession: UserSession = {
                 iduser: user.iduser,
@@ -39,26 +38,39 @@ export class AuthController {
             };
             (req.session as any).user = userSession;
 
-            await ResponseHelper.send(res, ApiResponse.success(userSession));
+            const responseBody = {
+                userInfo: userSession,
+                group: userSession.idgroup
+                    ? await genericRepository.findOne<Group>('tm_group', [{ column: 'idgroup', operator: '=', value: userSession.idgroup }])
+                    : null,
+                roleList: await genericRepository.select<Role>('tm_role'),
+            };
+
+            ResponseHelper.success(res, responseBody);
         } catch (error) {
-            console.error('Error auth.controller : ', error);
-            await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+            ResponseHelper.error(res, error);
         }
     }
 
     public static async logout(req: Request, res: Response) {
         req.session = null;
         res.clearCookie(config.cookie.name);
-        await ResponseHelper.send(res, ApiResponse.success({}));
+        ResponseHelper.success(res);
     }
 
     public static async reloadUserSession(req: Request, res: Response) {
         try {
             const userInfo: UserSession = (req.session as any).user;
-            await ResponseHelper.send(res, ApiResponse.success(userInfo));
+            const responseBody = {
+                userInfo: userInfo,
+                group: userInfo.idgroup
+                    ? await genericRepository.findOne<Group>('tm_group', [{ column: 'idgroup', operator: '=', value: userInfo.idgroup }])
+                    : null,
+                roleList: await genericRepository.select<Role>('tm_role'),
+            };
+            ResponseHelper.success(res, responseBody);
         } catch (error) {
-            console.error('Error reloadUserSession : ', error);
-            await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+            ResponseHelper.error(res, error);
         }
     }
 }

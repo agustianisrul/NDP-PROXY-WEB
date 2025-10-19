@@ -2,5 +2,10 @@
     <div class="w-full flex bg-white py-3 px-5 items-center rounded shadow mb-3">
         <p-breadcrumb [model]="breaditems" [home]="home" />
     </div>
-    <app-table-universal [url]="'/v2/user/list-user'" [columns]="columns"> </app-table-universal>
+    <app-table-universal
+        [url]="'/v2/scheduler/list-scheduler'"
+        [columns]="columns"
+        [mainTableButtons]="mainButtonList"
+        [rowTableButtons]="actionButtonList"
+    />
 </main>

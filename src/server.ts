@@ -1,14 +1,15 @@
 import { AngularNodeAppEngine, createNodeRequestHandler, isMainModule, writeResponseToNodeResponse } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
-import { config } from './backend/config/environment.js';
-import sessionConfig from './backend/config/session.js';
+import authRouter from '../auth.routes';
+import { config } from './backend/config/environment';
+import sessionConfig from './backend/config/session';
 import auditMiddleware from './backend/middlewares/audit.trail';
-import authRouter from './backend/routes/auth.routes.js';
-import groupRouter from './backend/routes/group.routes.js';
-import menuRouter from './backend/routes/menu.routes.js';
-import roleRouter from './backend/routes/role.routes.js';
-import userRouter from './backend/routes/user.routes.js';
+import groupRouter from './backend/routes/group.routes';
+import menuRouter from './backend/routes/menu.routes';
+import roleRouter from './backend/routes/role.routes';
+import schedulerRouter from './backend/routes/scheduler.routes';
+import userRouter from './backend/routes/user.routes';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -19,7 +20,7 @@ const angularApp = new AngularNodeAppEngine();
 app.use(express.json());
 app.use(sessionConfig);
 app.use(auditMiddleware);
-app.use('/v2', [authRouter, userRouter, menuRouter, groupRouter, roleRouter]);
+app.use('/v2', [authRouter, userRouter, menuRouter, groupRouter, roleRouter, schedulerRouter]);
 
 /**
  * Example Express Rest API endpoints can be defined here.

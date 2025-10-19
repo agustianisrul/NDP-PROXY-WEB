@@ -6,7 +6,6 @@ import { UserSession } from '../../model/custom-entity/UserSession';
 import { nowJSDate } from '../config/date-utils';
 import { GenericRepository } from '../repositories/generic.repository';
 import { ResponseHelper } from '../utils/ResponseHelper';
-import { ApiResponse } from '../utils/apiResponse';
 
 const genericRepository = new GenericRepository();
 
@@ -19,9 +18,9 @@ export async function getAllRole(req: Request, res: Response) {
             roledescription: role.roledescription,
             deleteable: role.deleteable === 1,
         }));
-        return await ResponseHelper.send(res, ApiResponse.success(roleDetailList));
+        return ResponseHelper.success(res, roleDetailList);
     }
-    await ResponseHelper.send(res, ApiResponse.success(roleList));
+    ResponseHelper.success(res);
 }
 
 export async function addRole(req: Request, res: Response) {
@@ -33,7 +32,7 @@ export async function addRole(req: Request, res: Response) {
             { column: 'rolename', operator: '=', value: requestBodyRole.rolename },
         ]);
         if (existingRole) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData([], 'Menu name Already taken!, please use anything else'));
+            return ResponseHelper.error(res, 'Menu name Already taken!, please use anything else');
         }
 
         const payloadInsert: Partial<Role> = {
@@ -45,12 +44,11 @@ export async function addRole(req: Request, res: Response) {
         };
         const insertRoleList: Role[] = await genericRepository.insert<Role>('tm_role', payloadInsert);
         if (insertRoleList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to add data!'));
+            return ResponseHelper.error(res, 'Unable to add data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error role.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }
 
@@ -68,12 +66,11 @@ export async function editRole(req: Request, res: Response) {
             { column: 'idRole', operator: '=', value: requestBodyRole.idRole },
         ]);
         if (roleList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to update data!'));
+            return ResponseHelper.error(res, 'Unable to update data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error role.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }
 
@@ -84,11 +81,10 @@ export async function deleteRole(req: Request, res: Response) {
             { column: 'idRole', operator: '=', value: requestBodyRole.idRole },
         ]);
         if (roleList.length === 0) {
-            return await ResponseHelper.send(res, ApiResponse.successNoData(null, 'Unable to delete data!'));
+            return ResponseHelper.error(res, 'Unable to delete data!');
         }
-        await ResponseHelper.send(res, ApiResponse.success());
+        ResponseHelper.success(res);
     } catch (error) {
-        console.error('Error role.controller : ', error);
-        await ResponseHelper.send(res, ApiResponse.serverError(error + ''));
+        ResponseHelper.error(res, error);
     }
 }

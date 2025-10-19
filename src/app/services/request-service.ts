@@ -1,10 +1,10 @@
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Observable, of } from 'rxjs';
 import { catchError, map, take } from 'rxjs/operators';
-import { ApiResponse } from '../../backend/utils/apiResponse';
+import { ApiResponse } from '../../model/others/ApiResponse';
 
 @Injectable({
     providedIn: 'root',
@@ -50,17 +50,33 @@ export class RequestService {
         return result.pipe(
             take(1),
             map((res: any) => {
-                console.log('response map request service');
-                return new ApiResponse<T>(res.code, res.message, res.data);
-            }),
-            catchError((error: HttpErrorResponse) => {
-                console.log('response error request service');
                 if (isPlatformBrowser(this.platformId)) {
-                    try {
-                        this.messageService.add({ severity: 'error', summary: 'Error', detail: error.error });
-                    } catch {
-                        console.error('MessageService add failed:', error.error);
-                    }
+                    queueMicrotask(() => {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Request Success',
+                            detail: 'response map request service',
+                            life: 5000,
+                        });
+                    });
+                }
+                return { code: res.code, message: res.message, data: res.data };
+            }),
+            catchError((error) => {
+                if (isPlatformBrowser(this.platformId)) {
+                    queueMicrotask(() => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Request Failed',
+                            detail: error?.error?.message || error?.message || 'Unknown error',
+                            life: 5000,
+                        });
+                    });
+                    // try {
+                    //     this.messageService.add({ severity: 'error', summary: 'Error', detail: JSON.stringify(error) });
+                    // } catch {
+                    //     console.error('MessageService add failed:', error);
+                    // }
                 }
 
                 return of({ code: error.status, message: error.error, data: null });

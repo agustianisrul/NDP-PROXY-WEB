@@ -3,4 +3,5 @@ export interface RouterItem {
     routerLink?: string;
     icon?: string;
     items?: RouterItem[] | null;
+    roles?: [];
 }
