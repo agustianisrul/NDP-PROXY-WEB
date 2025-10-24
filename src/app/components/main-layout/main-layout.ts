@@ -63,11 +63,14 @@ export class MainLayout implements OnInit, OnDestroy {
 
     private buildMenuItem(userInfo: UserSession | null): MenuItem[] {
         if (!userInfo) return [];
-        if (userInfo.isAdmin) {
-            return this.buildMenuAdmin();
-        }
         const tempGroup = this.authService.group();
-        if (!tempGroup) return [];
+        if (!tempGroup) {
+            if (userInfo.isAdmin) {
+                return this.buildMenuAdmin();
+            }
+            return [];
+        }
+            
         return this.convertToMenuItem(tempGroup.menublob);
     }
 
@@ -99,7 +102,7 @@ export class MainLayout implements OnInit, OnDestroy {
             { label: 'User', icon: 'pi pi-id-card', routerLink: ['/user'] },
             { label: 'Menu', icon: 'pi pi-check-square', routerLink: ['/menus'] },
             { label: 'Group', icon: 'pi pi-mobile', routerLink: ['/group'] },
-            { label: 'Role', icon: 'pi pi-table', routerLink: ['/role'] },
+            { label: 'Permission', icon: 'pi pi-table', routerLink: ['/permission'] },
         ];
     }
 

@@ -21,6 +21,10 @@ export class ResponseHelper {
         this.sendResponse(res, code, message, data);
     }
 
+    static customResponse<T>(res: Response, response: ApiResponse<T>): void {
+        res.status(response.code).json(response);
+    }
+
     private static convertMessageToString(message: unknown): string {
         if (!message) return '';
         if (message instanceof Error) {

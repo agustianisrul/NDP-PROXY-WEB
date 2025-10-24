@@ -4,64 +4,133 @@
     </ng-template>
 
     <!-- ================= View/Delete Mode ================= -->
-    <div *ngIf="mode === 'view' || mode === 'delete'" class="p-fluid">
-        <div *ngFor="let header of headers" class="p-field">
-            <span class="font-bold">{{ header.label }}</span>
-            <div>{{ getDisplayValue(header) }}</div>
+    @if (mode === 'view' || mode === 'delete' || mode === 'start' || mode === 'stop') {
+    <div class="flex flex-col gap-3 w-full p-4">
+        @for (header of headers; track header.key) {
+        <div class="flex flex-col md:flex-row items-start md:items-center w-full">
+            <div class="w-full md:w-1/3 font-semibold text-gray-700">{{ header.label }}</div>
+            <div class="w-full md:w-2/3 text-gray-900">{{ getDisplayValue(header) }}</div>
         </div>
+        }
     </div>
+    }
 
     <!-- ================= Create/Edit Mode ================= -->
     @if (mode === 'create' || mode === 'edit') {
-    <form [formGroup]="form" class="p-fluid">
-        <ng-container *ngFor="let header of headers">
-            <div class="p-field">
-                <label [for]="header.key">{{ header.label }}</label>
+    <form [formGroup]="form" class="p-fluid space-y-4">
+        @for (header of headers; track header.key) { @if (isDisplayInForm(header)) {
+        <ng-container>
+            <div class="flex flex-col md:flex-row items-start md:items-center w-full">
+                <div class="w-full md:w-1/3 font-semibold text-gray-700">
+                    <label [for]="header.key">
+                        {{ header.label }}
+                        @if (header.validators?.required) {
+                        <span class="text-red-500">*</span>
+                        }
+                    </label>
+                </div>
 
-                <!-- STRING -->
-                @if (!header.type || header.type === 'string') {
-                <input pInputText formControlName="{{ header.key }}" [id]="header.key" />
-                }
+                <div class="w-full md:w-2/3 text-gray-900">
+                    <!-- STRING -->
+                    @if ((!header.type || header.type === 'string') && !header.optionsParameter) {
+                    <input pInputText formControlName="{{ header.key }}" [id]="header.key" />
+                    }
 
-                <!-- NUMBER -->
-                @if (header.type === 'number') {
-                <input type="number" pInputText formControlName="{{ header.key }}" [id]="header.key" />
-                }
+                    <!-- NUMBER -->
+                    @if (header.type === 'number') {
+                    <input type="number" pInputText formControlName="{{ header.key }}" [id]="header.key" />
+                    }
 
-                <!-- BOOLEAN -->
-                @if (header.type === 'boolean') {
-                <p-checkbox formControlName="{{ header.key }}" [binary]="true" [inputId]="header.key"></p-checkbox>
-                }
+                    <!-- BOOLEAN -->
+                    @if (header.type === 'boolean' && !header.optionsParameter) {
+                    <p-checkbox formControlName="{{ header.key }}" [binary]="true" [inputId]="header.key"></p-checkbox>
+                    }
 
-                <!-- DATE -->
-                @if (header.type === 'date') {
-                <p-datepicker
-                    formControlName="{{ header.key }}"
-                    [dateFormat]="header.format || 'yy-mm-dd'"
-                    [showIcon]="true"
-                    [id]="header.key"
-                ></p-datepicker>
-                }
+                    <!-- DATE -->
+                    @if (header.type === 'date') {
+                    <p-datepicker
+                        formControlName="{{ header.key }}"
+                        [dateFormat]="header.format || 'yy-mm-dd'"
+                        [showIcon]="true"
+                        [id]="header.key"
+                    ></p-datepicker>
+                    }
 
-                <!-- ENUM / VALUES -->
-                @if (header.values) {
-                <p-select
-                    [options]="header.values | keyvalue"
-                    formControlName="{{ header.key }}"
-                    optionLabel="value"
-                    optionValue="key"
-                    [id]="header.key"
-                >
-                </p-select>
-                }
+                    <!-- ENUM / VALUES -->
+                    @if (header.values) {
+                    <p-select
+                        [options]="header.values | keyvalue"
+                        formControlName="{{ header.key }}"
+                        optionLabel="value"
+                        optionValue="key"
+                        [id]="header.key"
+                        [appendTo]="'body'"
+                    >
+                    </p-select>
+                    }
 
-                <!-- OPTIONS ARRAY -->
-                @if (header.options) {
-                <p-select [options]="header.options" formControlName="{{ header.key }}" optionLabel="label" optionValue="id" [id]="header.key">
-                </p-select>
-                }
+                    <!-- OPTIONS ARRAY -->
+                    @if (header.optionsParameter && !header.optionsParameter.multiSelect) {
+                    <p-select
+                        [options]="dataOptions.get(header.key) || []"
+                        formControlName="{{ header.key }}"
+                        [optionLabel]="header.optionsParameter.keyLabel"
+                        [optionValue]="header.optionsParameter.keyCode"
+                        [id]="header.key"
+                        [appendTo]="'body'"
+                    >
+                        <ng-template let-option #item>
+                            <div class="flex items-center gap-2">
+                                @if (header.type === 'icon') {
+                                    <i [class]="option[header.optionsParameter.keyCode || 'code']"></i>
+                                }
+                                <div>{{ option[header.optionsParameter.keyLabel || 'name'] }}</div>
+                            </div>
+                        </ng-template>
+
+                        <!-- ========== SELECTED ITEM TEMPLATE (for icons or general) ========== -->
+                        <ng-template #selectedItem let-selectedOption>
+                            @if (selectedOption) {
+                                <div class="flex items-center gap-2">
+                                    @if (header.type === 'icon') {
+                                        <i [class]="selectedOption[header.optionsParameter.keyCode || 'code']"></i>
+                                    }
+                                    <div>{{ selectedOption[header.optionsParameter.keyLabel || 'name'] }}</div>
+                                </div>
+                            }
+                        </ng-template>
+                    </p-select>
+                    }
+
+                    <!-- DYNAMIC OPTIONS: Multi Select -->
+                    @if (header.optionsParameter?.multiSelect) {
+                    <p-multiselect
+                        [options]="dataOptions.get(header.key) || []"
+                        formControlName="{{ header.key }}"
+                        [optionLabel]="header.optionsParameter?.keyLabel"
+                        [id]="header.key"
+                        display="chip"
+                        [appendTo]="'body'"
+                    ></p-multiselect>
+                    } 
+                    
+                    @if (form.controls[header.key]?.invalid && (form.controls[header.key]?.touched || form.controls[header.key]?.dirty)) {
+                    <div class="text-sm text-red-500 mt-1">
+                        @if (form.controls[header.key].errors?.['required']) {
+                        <ng-container> {{ header.label }} is required. </ng-container>
+                        } @if (form.controls[header.key].errors?.['email']) {
+                        <ng-container> Invalid email address. </ng-container>
+                        } @if (form.controls[header.key].errors?.['custom']) {
+                        <ng-container>
+                            {{ form.controls[header.key].errors?.['custom'] || header.validators?.customMessage }}
+                        </ng-container>
+                        }
+                    </div>
+                    }
+                </div>
             </div>
         </ng-container>
+        } }
     </form>
     }
 
@@ -71,6 +140,10 @@
         <button pButton type="button" label="Save" (click)="onSave()"></button>
         } @if (mode === 'delete') {
         <button pButton type="button" label="Confirm Delete" class="p-button-danger" (click)="onSave()"></button>
+        } @if (mode === 'start') {
+        <button pButton type="button" label="Start" (click)="onSave()"></button>
+        } @if (mode === 'stop') {
+        <button pButton type="button" label="Stop" (click)="onSave()"></button>
         }
     </ng-template>
 </p-dialog>

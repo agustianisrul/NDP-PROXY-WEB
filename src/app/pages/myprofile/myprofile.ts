@@ -54,7 +54,7 @@ export class Myprofile implements OnInit {
     });
     ngOnInit(): void {
         this.breaditems = [{ label: 'Privacy' }, { label: 'Profile' }];
-        this.home = { icon: 'pi pi-home', routerLink: '/' };
+        this.home = { icon: 'pi pi-home', routerLink: '/dashboard' };
         if (this.userInfo) {
             this.profileForm.patchValue({
                 iduser: this.userInfo.iduser ?? '',
@@ -71,7 +71,6 @@ export class Myprofile implements OnInit {
     }
     onSubmit() {
         const ObjectSubmited: any = this.profileForm.value;
-        console.log('Object Value ', this.profileForm.value);
         if (this.profileForm.invalid) {
             return; // Form invalid, jangan lanjut
         }
@@ -106,12 +105,10 @@ export class Myprofile implements OnInit {
             body: JSON.stringify(ObjectSubmited),
         })
             .then((res) => {
-                console.log('Response dari API /auth/updateusere 0', res);
                 if (!res.ok) throw new Error('q_shopee Gagal');
                 return res.json();
             })
             .then((data) => {
-                console.log('Response dari API /auth/updateuser 1', data);
                 if (data.code === 20000) {
                     this.loading = false;
                     this.successMessage = { success: true, message: `Update User succeed!`, title: 'Success Register!' };
@@ -121,7 +118,7 @@ export class Myprofile implements OnInit {
                 }
             })
             .catch((err) => {
-                console.log('Response Error Catch /auth/updateuser', err);
+                console.error('Response Error Catch /auth/updateuser', err);
             });
 
         // return;

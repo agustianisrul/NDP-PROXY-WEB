@@ -243,7 +243,9 @@
                                 <!-- Roles + Delete di kanan -->
                                 <div class="flex items-center gap-2">
                                     <!-- Roles list -->
+                                    @if(node?.roles?.length > 0) {
                                     <span class="text-md text-gray-500"> [{{ node.roles?.join(', ') }}] </span>
+                                    }
                                     <!-- Tombol delete -->
                                     <button (click)="deleteNode(node, treeData)" class="p-1 text-gray-500 hover:text-red-600">
                                         <i class="pi pi-times"></i>

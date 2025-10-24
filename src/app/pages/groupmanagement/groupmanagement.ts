@@ -96,7 +96,7 @@ export class Groupmanagement implements OnInit {
             { field: 'roleDescription', header: 'Description' },
         ];
         this.breaditems = [{ label: 'Management' }, { label: 'Groups' }];
-        this.home = { icon: 'pi pi-home', routerLink: '/' };
+        this.home = { icon: 'pi pi-home', routerLink: '/dashboard' };
         if (this.aclMenublob.includes('rd')) {
             await this._refreshListData();
             await this._refreshMenuMaster();
@@ -154,7 +154,6 @@ export class Groupmanagement implements OnInit {
         });
     }
     onGlobalSearch() {
-        console.log('Global filter : ', this.globalFilter);
         const term = this.globalFilter.trim().toLowerCase();
         if (term === '') {
             this.groups = [...this.allGroups];
@@ -165,7 +164,6 @@ export class Groupmanagement implements OnInit {
         }
     }
     onRowSelect(event: any) {
-        console.log('Selected Group:', event.data);
         const dataObj = event.data;
         this.idGroup = dataObj.idgroup;
         this.groupForm.patchValue({
@@ -177,29 +175,20 @@ export class Groupmanagement implements OnInit {
         this.showDetailForm = { show: true, action: 'edit' };
     }
     onRowSelectRole(event: any) {
-        console.log('Selected Role:', event.data);
-        // this.selectedRoles.push(event.data);
-        console.log('SELECTED ROLES ', this.selectedRoles);
     }
     onRowUnselectRole(event: any) {
         this.selectedRoles = this.selectedRoles.filter((r) => r.idRole !== event.data.idRole);
     }
     onHeaderCheckboxToggle(event: any) {
-        // console.log('Header checkbox toggled:', event.checked);
-        console.log('Selected Roles:', this.selectedRoles);
     }
 
     async _menusAtGroup(event: any) {
-        let menuBlob: any | undefined = event.menublob;
-        console.log('DATA MENU SELECTED ', menuBlob);
+        let menuBlob: any = event.menublob;
         if (menuBlob) {
-            let menuObj = JSON.parse(menuBlob);
-            let tesc: any = this.cleanMenuForTree(menuObj);
-            console.log('HASIL PARSE ', tesc);
+            let menuObj = menuBlob;
             this.treeData = this.cleanMenuForTree(menuObj);
         }
         this.showMenusDetail = { show: true, selectedGroup: event };
-        //  this.showRoleForm = {show:true, action:event}
     }
     async _cancelMenusAtGroup() {
         this.masterMenu = this.masterMenuTemp;
@@ -221,11 +210,10 @@ export class Groupmanagement implements OnInit {
     }
     onSubmit() {
         if (this.groupForm.invalid) {
-            return; // Form invalid, jangan lanjut
+            return;
         }
         this.loading = true;
         const objPayload = this.groupForm.value;
-        console.log('Payload form ', objPayload);
         this.groupForm.get('idgroup')?.enable();
         if (this.showDetailForm.action == 'add') {
             this._saveAddData(objPayload);
@@ -238,7 +226,6 @@ export class Groupmanagement implements OnInit {
     }
     async onOkDelete() {
         this.loading = true;
-        console.log('data to delete ', this.selectedGroup);
         await this._saveDeleteData(this.selectedGroup);
         this.showDetailDelete = false;
     }
@@ -258,7 +245,7 @@ export class Groupmanagement implements OnInit {
     }
 
     _saveEditData(payload: any, iGroup: string) {
-        payload = { ...payload, ...{ idgroup: iGroup } };
+        payload = { ...payload, idgroup: iGroup };
         this.requestService.postBackend('/v2/group/edit-group', payload).subscribe({
             next: () => {
                 this.showDetailForm = { show: false, action: 'add' };
@@ -284,7 +271,6 @@ export class Groupmanagement implements OnInit {
     }
 
     async _saveDeleteData(payload: any) {
-        console.log('Payload delete ', payload);
         this.requestService.postBackend('/v2/group/delete-group', payload).subscribe({
             next: () => {
                 this._refreshListData();
@@ -297,21 +283,25 @@ export class Groupmanagement implements OnInit {
 
     //############################################## FOR DRAG AND DROP ################################
     dragStart(menu: any) {
-        console.log('Dragging Menu');
         this.draggedMenu = menu;
         this.rolesData = menu.roleList;
     }
     dragEnd() {
-        console.log('Dragging End');
-        // this.draggedMenu = null;
+        if (this.draggedMenu?.roleList?.length === 0) {
+            if (this.showRoleForm.action === 'root') {
+                this.onDropRoot(this.draggedMenu);
+            } else {
+                this.onDropChild(this.draggedMenu, this.showRoleForm.parentNode);
+            }
+        }
     }
     onDropRootStart(event: any) {
-        console.log('Drop Root Start Event ');
         this.selectedRoles = [];
-        this.showRoleForm = { show: true, action: 'root', draggedMenu: this.draggedMenu };
+        if (this.draggedMenu?.roleList?.length > 0) {
+            this.showRoleForm = { show: true, action: 'root', draggedMenu: this.draggedMenu };
+        }
     }
     onDropRoot(event: any) {
-        console.log('Drop Root Event ', this.draggedMenu);
         if (this.draggedMenu) {
             this.treeData = [...this.treeData, this.createNode(this.draggedMenu)];
             this.removeFromMaster(this.draggedMenu.idMenu);
@@ -319,12 +309,12 @@ export class Groupmanagement implements OnInit {
         }
     }
     onDropChildStart(event: any, parentNode: any) {
-        console.log('Drop Child Event Start');
         this.selectedRoles = [];
-        this.showRoleForm = { show: true, action: 'child', draggedMenu: this.draggedMenu, parentNode: parentNode };
+        if (this.draggedMenu?.roleList?.length > 0) {
+            this.showRoleForm = { show: true, action: 'child', draggedMenu: this.draggedMenu, parentNode: parentNode };
+        }
     }
     onDropChild(event: any, parentNode: any) {
-        console.log('Drop Child Event ');
         if (this.draggedMenu) {
             parentNode.children = parentNode.children || [];
             parentNode.children.push(this.createNode(this.draggedMenu));
@@ -334,9 +324,6 @@ export class Groupmanagement implements OnInit {
         }
     }
     async _roleSubmit() {
-        console.log('Selected Role', this.selectedRoles);
-        console.log('DraggedMenu', this.draggedMenu);
-        console.log('Role Form', this.showRoleForm);
         // Ambil semua idRole
         if (this.selectedRoles.length > 0) {
             this.draggedMenu = { ...this.draggedMenu, ...{ roles: this.selectedRoles.map((item: RoleDetail) => item.rolename) } };
@@ -350,8 +337,6 @@ export class Groupmanagement implements OnInit {
     }
     async _roleCancel() {
         this.selectedRoles = [];
-        console.log('Selected Role', this.selectedRoles);
-        console.log('DraggedMenu', this.draggedMenu);
         this.draggedMenu = null;
         this.showRoleForm = { show: false, action: 'root' };
     }
@@ -383,18 +368,31 @@ export class Groupmanagement implements OnInit {
 
     deleteNode(node: any, nodes: any[]) {
         // 1. Flatten untuk ambil node beserta semua anak-anaknya
-        const allNodes = this.flattenNodes(node);
+        this.pushMenuToMasterMenu(node);
+        // const allNodes = this.flattenNodes(node);
         // 2. Kembalikan semua ke master menu
-        for (let n of allNodes) {
-            this.masterMenu.push({
-                idMenu: +n.key,
-                nameMenu: n.label,
-                iconMenu: n.icon,
-                pathMenu: n.path,
-            });
-        }
+        // for (let n of allNodes) {
+        //     this.masterMenu.push({
+        //         idMenu: +n.key,
+        //         nameMenu: n.label,
+        //         iconMenu: n.icon,
+        //         pathMenu: n.path,
+        //     });
+        // }
         // 3. Hapus dari treeData (rekursif)
         this.removeNode(node, this.treeData);
+    }
+
+    private pushMenuToMasterMenu(node: any): void {
+        const tempDeleteMenu = this.masterMenuTemp.find((tempMenu) => tempMenu.nameMenu === node.label);
+        if (tempDeleteMenu) {
+            this.masterMenu.push(tempDeleteMenu);
+        }
+        if (node.children?.length > 0) {
+            for (const tempChildrenNode of node.children) {
+                this.pushMenuToMasterMenu(tempChildrenNode);
+            }
+        }
     }
 
     private createNode(menu: any) {
@@ -416,6 +414,7 @@ export class Groupmanagement implements OnInit {
         this.loading = true;
         const compactMenu = await this.transformTreeToMenuModel(this.treeData);
         this._updateMenuGroup(JSON.stringify(compactMenu));
+        this.showMenusDetail = { show: false };
     }
     // Transform treeData -> PrimeNG MenuModel
     async transformTreeToMenuModel(nodes: any[], isRoot = true): Promise<any[]> {
@@ -470,20 +469,12 @@ export class Groupmanagement implements OnInit {
                 }
 
                 // --- cek items ---
-                // console.log("CHECK ITEMS ", item.items);
                 if (item.items) {
                     let parsedItems: any[] = [];
 
                     if (typeof item.items === 'string') {
-                        // console.log("itemnya string : ", item.items);
-                        try {
-                            parsedItems = JSON.parse(item.items);
-                            // console.log("itemnya aray : ", parsedItems);
-                        } catch (e) {
-                            console.warn('Gagal parse items string:', item.items);
-                        }
+                        parsedItems = JSON.parse(item.items);
                     } else if (Array.isArray(item.items)) {
-                        // console.log("itemnya ternyata array : ", item.items);
                         parsedItems = item.items;
                     }
 

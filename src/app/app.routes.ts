@@ -17,13 +17,15 @@ export const routes: Routes = [
         canActivate: [authenticationGuard],
         children: [
             { path: '', component: Dashboard },
+            { path: 'dashboard', component: Dashboard },
             { path: 'user', component: Usermanagement },
             { path: 'menus', component: Menumanagement },
             { path: 'group', component: Groupmanagement },
-            { path: 'role', component: Rolemanagement },
+            { path: 'permission', component: Rolemanagement },
             { path: 'profile', component: Myprofile },
             { path: 'scheduler', loadChildren: () => import('./pages/scheduler/scheduler-routing-module') },
-            // { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
+            { path: 'config', loadChildren: () => import('./pages/scheduler/scheduler-routing-module') },
+            { path: 'prefix', loadChildren: () => import('./pages/prefix/prefix-routing-module') },
         ],
     },
     { path: 'login', component: Login },

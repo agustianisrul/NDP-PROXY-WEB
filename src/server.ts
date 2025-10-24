@@ -5,8 +5,10 @@ import authRouter from '../auth.routes';
 import { config } from './backend/config/environment';
 import sessionConfig from './backend/config/session';
 import auditMiddleware from './backend/middlewares/audit.trail';
+import dashboardRouter from './backend/routes/dashboard.routes';
 import groupRouter from './backend/routes/group.routes';
 import menuRouter from './backend/routes/menu.routes';
+import prefixRouter from './backend/routes/prefix.routes';
 import roleRouter from './backend/routes/role.routes';
 import schedulerRouter from './backend/routes/scheduler.routes';
 import userRouter from './backend/routes/user.routes';
@@ -20,7 +22,7 @@ const angularApp = new AngularNodeAppEngine();
 app.use(express.json());
 app.use(sessionConfig);
 app.use(auditMiddleware);
-app.use('/v2', [authRouter, userRouter, menuRouter, groupRouter, roleRouter, schedulerRouter]);
+app.use('/v2', [authRouter, userRouter, menuRouter, groupRouter, roleRouter, schedulerRouter, prefixRouter, dashboardRouter]);
 
 /**
  * Example Express Rest API endpoints can be defined here.

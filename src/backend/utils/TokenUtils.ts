@@ -18,19 +18,19 @@ export class TokenUtils {
         return cookies[sessionName] ?? null;
     }
 
-    public static async generateToken(req: Request): Promise<string> {
+    public static async generateToken(userInfo: any): Promise<string> {
         const secretKey = base64url.decode(config.cookie.secret);
 
-        const payload: any = {
-            ...(req.session as any).user,
-            ip: req.ip,
-            ua: req.headers['user-agent'],
-        };
-
-        return await new SignJWT(payload)
+        // const payload: any = {
+        //     ...(req.session as any).user,
+        //     ip: req.ip,
+        //     ua: req.headers['user-agent'],
+        // };
+        return await new SignJWT(userInfo)
             .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
             .setIssuedAt()
-            .setExpirationTime(`${config.cookie.maxAge / 1000}s`) // convert ms → s
+            .setExpirationTime('10s')
+            // .setExpirationTime(`${config.cookie.maxAge / 1000}s`) // convert ms → s
             .sign(secretKey);
     }
 

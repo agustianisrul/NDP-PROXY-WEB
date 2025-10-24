@@ -17,4 +17,8 @@ export class DateService {
             .setZone(tz)
             .toFormat(fmt);
     }
+
+    currentDate(tz: string = this.DEFAULT_TZ) {
+        return DateTime.now().setZone(tz).toJSDate();
+    }
 }

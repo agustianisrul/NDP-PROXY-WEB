@@ -48,7 +48,6 @@ export class Registration {
         this.loading = true;
 
         this.requestService.postBackend<UserDetail>('/v2/user/register-user-admin', this.registerForm.value).subscribe((res: any) => {
-            console.log('Response dari API DATA ', res.data);
             this.loading = false;
             if (res.code === 20000) {
                 this.successRegistration = { success: true, message: `Registration Success and ${res.message}`, title: 'Success Register!' };

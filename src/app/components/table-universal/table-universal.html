@@ -1,6 +1,6 @@
 <p-table
     #dt1
-    [value]="data"
+    [value]="data || []"
     [dataKey]="dataKey"
     [paginator]="true"
     [rows]="rowsPerPage"
@@ -12,21 +12,20 @@
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
     (onPage)="pageChange($event)"
     [rowsPerPageOptions]="[10, 25, 50]"
-    [(selection)]="selectedRows"
-    (selectionChange)="selectionChange.emit($event)"
+    (selectionChange)="onSelectionChange($event)"
 >
     <ng-template #caption>
         <div class="flex items-center justify-between w-full gap-2">
             <div class="flex gap-2">
-                @for (btn of mainTableButtons; track btn.label) {
+                @for (btn of mainTableButtons; track btn.type) {
                 <button
                     pButton
                     type="button"
                     [label]="btn.label"
                     [icon]="btn.icon ?? ''"
                     [severity]="btn.severity ?? 'primary'"
-                    [disabled]="!btn.alwaysEnabled && (!selectedRows || selectedRows.length === 0)"
-                    (click)="btn.action()"
+                    [disabled]="isButtonDisabled(btn)"
+                    (click)="onMainTableButtonClick(btn)"
                 ></button>
                 }
             </div>
@@ -43,14 +42,14 @@
     <ng-template pTemplate="header">
         <tr>
             <!-- Select all checkbox -->
-            @if (showCheckbox) {
+            @if (isButtonDeleteExist()) {
             <th scope="col" style="width: 3rem">
                 <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
             }
 
             <!-- Dynamic column headers -->
-            @for (col of columns; track col.key) {
+            @for (col of columns; track $index) { @if (isDisplayInTable(col)) {
             <th
                 id="{{ col.key }}"
                 scope="col"
@@ -63,10 +62,10 @@
                 <p-sortIcon [field]="col.key"></p-sortIcon>
                 }
             </th>
-            }
+            } }
 
             <!-- Action column header -->
-            @if (rowTableButtons.length > 0) {
+            @if (rowTableButtons.length > 0 && viewEnabled !== false) {
             <th scope="col" style="width: 120px; text-align: center">Actions</th>
             }
         </tr>
@@ -75,16 +74,21 @@
     <ng-template pTemplate="body" let-row>
         <tr>
             <!-- Row checkbox -->
-            @if (showCheckbox) {
+            @if (isButtonDeleteExist()) {
             <td>
                 <p-tableCheckbox [value]="row"></p-tableCheckbox>
             </td>
             }
 
             <!-- Data cells -->
-            @for (col of columns; track col.key) {
+            @for (col of columns; track $index) { @if (isDisplayInTable(col)) { @if (col.type === 'icon') {
+            <td headers="{{ col.key }}" [style.text-align]="col.align ?? 'left'">
+                <i [class]="row[col.key]" class="mr-2"></i>
+                {{ row[col.key] }}
+            </td>
+            } @else {
             <td headers="{{ col.key }}" [style.text-align]="col.align ?? 'left'">{{ formatValue(row[col.key], col) }}</td>
-            }
+            } } }
 
             <!-- Action buttons per row -->
             @if (rowTableButtons.length > 0) {
@@ -99,7 +103,7 @@
                         tooltipPosition="top"
                         [rounded]="true"
                         [severity]="btn.severity ?? 'secondary'"
-                        (click)="btn.action(row)"
+                        (click)="onRowTableButtonClick(btn, row)"
                     ></button>
                     }
                 </div>

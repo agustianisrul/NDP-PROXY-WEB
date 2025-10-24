@@ -1,44 +1,53 @@
 import { Request, Response } from 'express';
-import { config } from '../../config/environment';
+import { UserSession } from '../../../model/custom-entity/UserSession';
+import { Scheduler } from '../../../model/surrounding/Scheduler';
 import { ResponseHelper } from '../../utils/ResponseHelper';
-import { TokenUtils } from '../../utils/TokenUtils';
+import { GenericSurrounding } from './generic.surrounding';
 
 export class SchedulerController {
-    public static async getAllScheduler(req: Request, res: Response) {
-        try {
-            // 🔐 Generate JWT (HS256)
-            const token = await TokenUtils.generateToken(req);
-            if (!token) {
-                return ResponseHelper.error(res, 'Unauthorized: Failed to generate token');
-            }
+    static async getAllScheduler(req: Request, res: Response) {
+        const userInfo: UserSession = (req.session as any).user;
+        const endpointTarget = '/ndp/proxy/scheduler/getall';
+        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'GET'));
+    }
 
-            // 🌐 Call external API securely
-            const response = await fetch(`${config.app.apiUrl}/ndp/proxy/scheduler/getall`, {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
+    static async getSchedulerById(req: Request, res: Response) {
+        const userInfo: UserSession = (req.session as any).user;
+        const requestParam = req.params['id'];
+        const endpointTarget = `/ndp/proxy/scheduler/getbyid/${requestParam}`;
+        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'GET'));
+    }
 
-            // 📦 Validate response
-            if (!response.ok) {
-                const errorText = await response.text();
-                return ResponseHelper.custom(res, response.status, errorText);
-            }
+    static async postScheduler(req: Request, res: Response) {
+        const userInfo: UserSession = (req.session as any).user;
+        const requestBody: Partial<Scheduler> = req.body;
+        const endpointTarget = `/ndp/proxy/scheduler/create`;
+        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'POST', requestBody));
+    }
 
-            // ✅ Parse JSON safely
-            const data = await response.json();
+    static async putScheduler(req: Request, res: Response) {
+        const userInfo: UserSession = (req.session as any).user;
+        const requestBody: Partial<Scheduler> = req.body;
+        const endpointTarget = `/ndp/proxy/scheduler/update/${requestBody.idScheduler}`;
+        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'PUT', requestBody));
+    }
 
-            const dataParsing = {
-                code: data.status ?? 200,
-                message: data.message ?? 'OK',
-                data: data.data ?? [],
-            };
+    static async deleteScheduler(req: Request, res: Response) {
+        const userInfo: UserSession = (req.session as any).user;
+        const requestBody: Partial<Scheduler> = req.body;
+        const endpointTarget = `/ndp/proxy/scheduler/deletebyid/${requestBody.idScheduler}`;
+        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'DELETE'));
+    }
 
-            return ResponseHelper.success(res, dataParsing);
-        } catch (error: any) {
-            return ResponseHelper.error(res, error.message || 'Internal server error');
-        }
+    static async startScheduler(req: Request, res: Response) {
+        const userInfo: UserSession = (req.session as any).user;
+        const endpointTarget = `/ndp/proxy/scheduler/start`;
+        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'GET'));
+    }
+
+    static async stopScheduler(req: Request, res: Response) {
+        const userInfo: UserSession = (req.session as any).user;
+        const endpointTarget = `/ndp/proxy/scheduler/stop`;
+        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'GET'));
     }
 }

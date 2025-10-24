@@ -35,12 +35,11 @@ export class Login {
 
         this.authService.login(username!, password!).subscribe({
             next: () => {
-                const target = this.authService.redirectUrl ?? '/';
+                const target = this.authService.redirectUrl ?? '/dashboard';
                 this.authService.redirectUrl = null;
                 this.router.navigateByUrl(target);
             },
             error: (err: HttpErrorResponse) => {
-                console.log('error login', err);
                 const message = err.error.message || 'Invalid username or password';
                 this.loginForm.setErrors({ invalidLogin: true });
                 this.errorMessage = { error: true, severity: 'error', message: `${message}`, icon: 'pi pi-times' };
@@ -52,6 +51,7 @@ export class Login {
     get f() {
         return this.loginForm.controls;
     }
+
     _changeError() {
         this.errorMessage = { error: false, severity: 'info', message: '', icon: 'pi pi-send' };
     }

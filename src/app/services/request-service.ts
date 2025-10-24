@@ -50,16 +50,6 @@ export class RequestService {
         return result.pipe(
             take(1),
             map((res: any) => {
-                if (isPlatformBrowser(this.platformId)) {
-                    queueMicrotask(() => {
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Request Success',
-                            detail: 'response map request service',
-                            life: 5000,
-                        });
-                    });
-                }
                 return { code: res.code, message: res.message, data: res.data };
             }),
             catchError((error) => {
@@ -72,11 +62,6 @@ export class RequestService {
                             life: 5000,
                         });
                     });
-                    // try {
-                    //     this.messageService.add({ severity: 'error', summary: 'Error', detail: JSON.stringify(error) });
-                    // } catch {
-                    //     console.error('MessageService add failed:', error);
-                    // }
                 }
 
                 return of({ code: error.status, message: error.error, data: null });

@@ -11,9 +11,9 @@ import { RoleEnumService } from '../services/role-enum-service';
     selector: '[appParentComponent]',
 })
 export abstract class ParentComponent implements OnInit, OnDestroy {
-    private readonly router = inject(Router);
+    protected readonly router = inject(Router);
     private readonly authenticationService = inject(AuthenticationService);
-    private readonly platformId = inject(PLATFORM_ID);
+    protected readonly platformId = inject(PLATFORM_ID);
     private routerSub?: Subscription;
     private _activeMenuItem: RouterItem | null = null;
 
@@ -54,6 +54,8 @@ export abstract class ParentComponent implements OnInit, OnDestroy {
     }
 
     protected hasRole(roleName: string): boolean {
+        if (this.currentUser?.isAdmin === true) return true;
+
         const activeMenuItem = this._activeMenuItem;
         const expectedRoleValue = RoleEnumService.getRoleValue(roleName);
         if (!expectedRoleValue || !activeMenuItem?.roles?.length) return false;
@@ -72,5 +74,9 @@ export abstract class ParentComponent implements OnInit, OnDestroy {
 
     protected get currentUrl(): string {
         return this.router.url;
+    }
+
+    protected get currentMenuLabel(): string {
+        return this._activeMenuItem?.label ?? this.router.url.replaceAll('/', '');
     }
 }

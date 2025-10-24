@@ -17,7 +17,7 @@ export class BarChart implements OnInit {
 
     platformId = inject(PLATFORM_ID);
 
-    constructor(private cd: ChangeDetectorRef) {}
+    constructor(private readonly cd: ChangeDetectorRef) {}
 
     ngOnInit() {
         this.initChart();

@@ -7,6 +7,7 @@ import { GroupDetail } from '../../model/custom-entity/GroupDetail';
 import { RoleDetail } from '../../model/custom-entity/RoleDetail';
 import { UserSession } from '../../model/custom-entity/UserSession';
 import { ApiResponse } from '../../model/others/ApiResponse';
+import { RouterItem } from '../../model/others/RouterItem';
 import { RoleEnumService } from './role-enum-service';
 
 @Injectable({ providedIn: 'root' })
@@ -42,9 +43,27 @@ export class AuthenticationService {
                     if (Object.keys(RoleEnumService.getRoleEnum()).length === 0) {
                         await this.roleEnumService.loadEnums(res.data.roleList);
                     }
+                    this.getFirstMenuUrl(res.data.group?.menublob);
                 }
             })
         );
+    }
+
+    private getFirstMenuUrl(menuList: RouterItem[] | null | undefined): void {
+        if (!menuList || menuList.length === 0) {
+            this.redirectUrl = '/profile';
+            return;
+        }
+        const tempRouterItem: RouterItem = menuList[0];
+        if (tempRouterItem.routerLink) {
+            if ('/'.includes(tempRouterItem.routerLink)) {
+                this.redirectUrl = tempRouterItem.routerLink;
+            } else {
+                this.redirectUrl = `/${tempRouterItem.routerLink}`;
+            }
+            return;
+        }
+        this.getFirstMenuUrl(tempRouterItem.items);
     }
 
     /** 🚪 Logout and clear session */

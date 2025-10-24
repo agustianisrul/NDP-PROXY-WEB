@@ -10,7 +10,6 @@ const serverConfig: ApplicationConfig = {
         provideAppInitializer(() => {
             // injection happens inside the initializer's injection context
             const authenticationService = inject(AuthenticationService);
-            console.log('inside app.config.server.ts');
             // if loadCurrentUser returns a Promise, Angular will wait for it
             return authenticationService.loadCurrentUser();
         }),

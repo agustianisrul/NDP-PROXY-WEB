@@ -83,9 +83,9 @@ export class GenericRepository {
 
             if (hasJoins) {
                 // joined query path
-                // const tables = [tableName, ...joins.map((j) => j.table)];
-                // const selectColumns = await this.buildAliasedColumns(tempPool, tables);
-                query = tempPool(tableName); //.select(selectColumns);
+                const tables = [tableName, ...joins.map((j) => j.table)];
+                const selectColumns = await this.buildAliasedColumns(tempPool, tables);
+                query = tempPool.from(tableName).select(selectColumns); //.select('*');
                 query = this.applyJoins(query, joins);
             } else {
                 // simple query path

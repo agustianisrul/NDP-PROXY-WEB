@@ -94,7 +94,7 @@ export class Usermanagement implements OnInit {
             { field: 'status', header: 'Status' },
         ];
         this.breaditems = [{ label: 'Management' }, { label: 'Users' }];
-        this.home = { icon: 'pi pi-home', routerLink: '/' };
+        this.home = { icon: 'pi pi-home', routerLink: '/dashboard' };
         //##########################################################
         // await this._refreshACLMenu();
         if (this.aclMenublob.includes('rd')) {
@@ -109,7 +109,6 @@ export class Usermanagement implements OnInit {
         // this.errorMessage={error:false, severity:"info", message:"", icon:"pi pi-send"};
     }
     onRowSelect(event: any) {
-        console.log('Selected User:', event.data);
         const dataObj = event.data;
         this.idUserOld = dataObj.iduser;
         const groupObj: any = this.groups.find((g) => g.idgroup === dataObj.idgroup) || {};
@@ -162,7 +161,6 @@ export class Usermanagement implements OnInit {
     }
 
     onGlobalSearch() {
-        console.log('Global filter : ', this.globalFilter);
         const term = this.globalFilter.trim().toLowerCase();
         if (term === '') {
             this.users = [...this.allUser];
@@ -197,12 +195,7 @@ export class Usermanagement implements OnInit {
         }
         this.loading = true;
         let objPayload = this.userForm.value;
-        console.log('Payload form ', objPayload);
-        // const selectedGroup: any = objPayload.idgroupObj;
-        // objPayload.idgroup = selectedGroup?.idgroup;
-        // delete objPayload.idgroupObj;
         if (this.showDetailForm.action == 'add') {
-            //########### CHECK PANJANG USER ##############
             let usernameLength = objPayload?.username;
             if ((usernameLength ?? '').length < 6) {
                 this.loading = false;
@@ -231,7 +224,6 @@ export class Usermanagement implements OnInit {
                 this._saveAddData(objPayload);
             }
         } else {
-            console.log('IdUserOLD : ', this.idUserOld);
             this._saveEditData(objPayload, this.idUserOld);
         }
     }
@@ -248,7 +240,6 @@ export class Usermanagement implements OnInit {
     }
     async onOkDelete() {
         this.loading = true;
-        console.log('data to delete ', this.selectedUser);
         await this._saveDeleteData(this.selectedUser);
         this.showDetailDelete = false;
     }

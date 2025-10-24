@@ -77,7 +77,7 @@ export class Rolemanagement implements OnInit {
             { field: 'roledescription', header: 'Description' },
         ];
         this.breaditems = [{ label: 'Management' }, { label: 'Role' }];
-        this.home = { icon: 'pi pi-home', routerLink: '/' };
+        this.home = { icon: 'pi pi-home', routerLink: '/dashboard' };
         if (this.aclMenublob.includes('rd')) {
             await this._refreshListData();
         }
@@ -101,7 +101,6 @@ export class Rolemanagement implements OnInit {
     }
 
     onGlobalSearch() {
-        console.log('Global filter : ', this.globalFilter);
         const term = this.globalFilter.trim().toLowerCase();
         if (term === '') {
             this.roles = [...this.allRoles];
@@ -113,7 +112,6 @@ export class Rolemanagement implements OnInit {
     }
 
     onRowSelect(event: any) {
-        console.log('Selected Role:', event.data);
         const dataObj = event.data;
         this.idRoleOld = dataObj.idRole;
         this.roleForm.patchValue({
@@ -143,7 +141,6 @@ export class Rolemanagement implements OnInit {
         }
         this.loading = true;
         const objPayload = this.roleForm.value;
-        console.log('Payload form ', objPayload);
         if (this.showDetailForm.action == 'add') {
             this._saveAddData(objPayload);
         } else {

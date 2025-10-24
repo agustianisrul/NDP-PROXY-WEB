@@ -7,5 +7,17 @@
         [columns]="columns"
         [mainTableButtons]="mainButtonList"
         [rowTableButtons]="actionButtonList"
+        [(selectedRows)]="selectedRows"
+        (mainTableButtonClick)="onMainTableButtonClick($event)"
+        (rowTableButtonClick)="onRowTableButtonClick($event)"
+        [reloadTrigger]="reloadTableData"
+    />
+    <app-dialog-detail
+        [(visible)]="dialogVisible"
+        [title]="currentMenuLabel"
+        [headers]="columns"
+        [model]="selectedRow"
+        [mode]="dialogMode"
+        (saveClick)="handleSave()"
     />
 </main>

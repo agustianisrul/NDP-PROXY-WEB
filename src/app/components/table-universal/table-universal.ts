@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -17,19 +17,22 @@ import { RequestService } from '../../services/request-service';
     templateUrl: './table-universal.html',
     styleUrl: './table-universal.css',
 })
-export class TableUniversal implements OnInit {
-    @Input() url!: string;
+export class TableUniversal<T> implements OnInit, OnChanges {
+    @Input() url?: string;
+    @Input() data?: T[] = [];
     @Input() columns: TableHeader[] = [];
     @Input() rowsPerPage: number = 10;
     @Input() dataKey!: string;
     @Input() mainTableButtons: TableButton[] = [];
     @Input() rowTableButtons: TableButton[] = [];
-    @Input() showCheckbox: boolean = false;
-    @Input() selectedRows: any[] = [];
+    @Input() selectedRows: T[] = [];
+    @Input() reloadTrigger: boolean = false;
+    @Input() viewEnabled?: boolean = true;
 
-    @Output() selectionChange = new EventEmitter<any[]>();
+    @Output() selectedRowsChange = new EventEmitter<T[]>();
+    @Output() mainTableButtonClick = new EventEmitter<TableButton>();
+    @Output() rowTableButtonClick = new EventEmitter<{ type: string; row: T }>();
 
-    data: any[] = [];
     totalRecords = 0;
     first = 0;
     loading = false;
@@ -42,19 +45,29 @@ export class TableUniversal implements OnInit {
         this.filterKeys = this.columns.map((col) => col.key);
     }
 
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes['reloadTrigger'] && !changes['reloadTrigger'].firstChange) {
+            this.fetchData();
+        }
+    }
+
     fetchData(): void {
-        this.loading = true;
-        this.requestService.getBackend(this.url).subscribe({
-            next: (res: any) => {
-                this.data = res.data.data;
-                this.totalRecords = res.data.data.total;
-                this.loading = false;
-            },
-            error: () => {
-                this.data = [];
-                this.loading = false;
-            },
-        });
+        if (this.url) {
+            this.loading = true;
+            this.requestService.getBackend(this.url).subscribe({
+                next: (res: any) => {
+                    this.data = res.data ?? [];
+                    this.totalRecords = res.data.length;
+                    this.loading = false;
+                    this.reloadTrigger = false;
+                },
+                error: () => {
+                    this.data = [];
+                    this.loading = false;
+                    this.reloadTrigger = false;
+                },
+            });
+        }
     }
 
     next() {
@@ -108,9 +121,34 @@ export class TableUniversal implements OnInit {
         if (col.values) {
             return col.values[cellValue] ?? cellValue;
         }
-        if (col.options) {
-            return col.options.find((opt: any) => opt.id === cellValue)?.label ?? cellValue;
-        }
         return null;
+    }
+
+    isDisplayInTable(header: TableHeader) {
+        if (!header.displayAt) return true;
+
+        return ['table', 'both'].includes(header.displayAt);
+    }
+
+    onMainTableButtonClick(btn: TableButton) {
+        this.mainTableButtonClick.emit(btn);
+    }
+
+    onRowTableButtonClick(btn: TableButton, row: T) {
+        this.rowTableButtonClick.emit({ type: btn.type, row });
+    }
+
+    onSelectionChange(event: T[]) {
+        this.selectedRows = event;
+        this.selectedRowsChange.emit(event);
+    }
+
+    isButtonDisabled(btn: TableButton): boolean {
+        // only 'delete' is always enabled
+        return btn.type === 'delete' && this.selectedRows.length === 0;
+    }
+
+    isButtonDeleteExist(): boolean {
+        return this.mainTableButtons.some((a) => a.type === 'delete');
     }
 }
