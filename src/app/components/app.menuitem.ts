@@ -28,15 +28,16 @@ import { LayoutService } from '../services/layout-service';
                 <span class="layout-menuitem-text">{{ item.label }}</span>
                 <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
             </a>
+
+            <!-- [routerLinkActiveOptions]="
+                    item.routerLinkActiveOptions || { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }
+                " -->
             <a
                 *ngIf="item.routerLink && !item.items && item.visible !== false"
                 (click)="itemClick($event)"
                 [ngClass]="item.styleClass"
                 [routerLink]="item.routerLink"
                 routerLinkActive="active-route"
-                [routerLinkActiveOptions]="
-                    item.routerLinkActiveOptions || { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }
-                "
                 [fragment]="item.fragment"
                 [queryParamsHandling]="item.queryParamsHandling"
                 [preserveFragment]="item.preserveFragment"
@@ -136,9 +137,9 @@ export class AppMenuitem implements OnDestroy, OnInit {
             fragment: 'ignored',
         });
 
-        if (activeRoute) {
-            this.layoutService.onMenuStateChange({ key: this.key, routeEvent: true });
-        }
+        // if (activeRoute) {
+        this.layoutService.onMenuStateChange({ key: this.key, routeEvent: true });
+        // }
     }
 
     itemClick(event: Event) {

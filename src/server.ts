@@ -5,8 +5,11 @@ import authRouter from '../auth.routes';
 import { config } from './backend/config/environment';
 import sessionConfig from './backend/config/session';
 import auditMiddleware from './backend/middlewares/audit.trail';
+import serverConfigRouter from './backend/routes/config.routes';
 import dashboardRouter from './backend/routes/dashboard.routes';
+import filePriorityRouter from './backend/routes/file.priority.routes';
 import groupRouter from './backend/routes/group.routes';
+import houseKeepingRouter from './backend/routes/housekeeping.routes';
 import menuRouter from './backend/routes/menu.routes';
 import prefixRouter from './backend/routes/prefix.routes';
 import roleRouter from './backend/routes/role.routes';
@@ -22,7 +25,19 @@ const angularApp = new AngularNodeAppEngine();
 app.use(express.json());
 app.use(sessionConfig);
 app.use(auditMiddleware);
-app.use('/v2', [authRouter, userRouter, menuRouter, groupRouter, roleRouter, schedulerRouter, prefixRouter, dashboardRouter]);
+app.use('/v2', [
+    authRouter,
+    userRouter,
+    menuRouter,
+    groupRouter,
+    roleRouter,
+    schedulerRouter,
+    prefixRouter,
+    dashboardRouter,
+    serverConfigRouter,
+    filePriorityRouter,
+    houseKeepingRouter,
+]);
 
 /**
  * Example Express Rest API endpoints can be defined here.
@@ -62,8 +77,8 @@ app.use((req, res, next) => {
  * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
-    const port = process.env['PORT'] || 4000;
-    app.listen(port, (error) => {
+    const port = Number(process.env['PORT']) || 4000;
+    app.listen(port, '0.0.0.0', (error) => {
         if (error) {
             throw error;
         }

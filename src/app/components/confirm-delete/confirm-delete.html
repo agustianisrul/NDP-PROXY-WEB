@@ -1,0 +1,33 @@
+<p-confirmdialog #cd [style]="{ width: '30rem' }">
+    <ng-template pTemplate="headless" let-message let-onAccept="onAccept" let-onReject="onReject">
+        <div class="flex flex-col items-center p-8 bg-surface-0 dark:bg-surface-900 rounded-2xl">
+            <!-- Icon -->
+            <div class="rounded-full bg-primary text-primary-contrast inline-flex justify-center items-center h-24 w-24 -mt-20 shadow-md">
+                <i class="pi pi-question text-5xl"></i>
+            </div>
+
+            <!-- Header -->
+            <span class="font-bold text-2xl block mb-2 mt-6 text-center">
+                {{ message.header }}
+            </span>
+
+            <!-- Message -->
+            <p class="mb-4 text-center">{{ message.message }}</p>
+
+            <!-- Selected Rows -->
+            @if (selectedRows.length > 0) {
+            <ul class="list-disc list-inside text-center">
+                @for (row of selectedRows; track $index) {
+                <li>{{ getValue(row) }}</li>
+                }
+            </ul>
+            }
+
+            <!-- Buttons -->
+            <div class="flex items-center justify-center gap-3 mt-6">
+                <p-button label="Submit" (onClick)="onAccept()" styleClass="w-32"></p-button>
+                <p-button label="Cancel" [outlined]="true" (onClick)="onReject()" styleClass="w-32"></p-button>
+            </div>
+        </div>
+    </ng-template>
+</p-confirmdialog>

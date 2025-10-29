@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SchedulerDetail } from './scheduler-detail';
+import { ConfirmDelete } from './confirm-delete';
 
-describe('SchedulerDetail', () => {
-  let component: SchedulerDetail;
-  let fixture: ComponentFixture<SchedulerDetail>;
+describe('ConfirmDelete', () => {
+  let component: ConfirmDelete;
+  let fixture: ComponentFixture<ConfirmDelete>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SchedulerDetail]
+      imports: [ConfirmDelete]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SchedulerDetail);
+    fixture = TestBed.createComponent(ConfirmDelete);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

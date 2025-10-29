@@ -2403,7 +2403,7 @@ a {
     flex-direction: column;
     min-height: 100vh;
     justify-content: space-between;
-    padding: 6rem 2rem 0;
+    padding: 7rem 2rem;
     transition: margin-left var(--layout-section-transition-duration);
 }
 
@@ -2418,7 +2418,7 @@ img {
 
 .layout-topbar {
     position: fixed;
-    height: 4rem;
+    height: 6rem;
     z-index: 997;
     left: 0;
     top: 0;
@@ -2580,13 +2580,13 @@ img {
 
 .layout-sidebar {
     position: fixed;
-    width: 20rem;
+    width: 25rem;
     height: calc(100vh - 8rem);
     z-index: 999;
     overflow-y: auto;
     -webkit-user-select: none;
     user-select: none;
-    top: 6rem;
+    top: 7rem;
     left: 2rem;
     transition: transform var(--layout-section-transition-duration), left var(--layout-section-transition-duration);
     background-color: var(--surface-overlay);
@@ -2757,7 +2757,7 @@ img {
     }
 
     .layout-wrapper.layout-static .layout-main-container {
-        margin-left: 21rem;
+        margin-left: 26rem;
     }
 
     .layout-wrapper.layout-static.layout-static-inactive .layout-sidebar {

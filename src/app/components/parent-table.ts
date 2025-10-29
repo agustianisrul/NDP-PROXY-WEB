@@ -1,12 +1,17 @@
-import { Directive } from '@angular/core';
+import { Directive, inject } from '@angular/core';
+import { ConfirmationService } from 'primeng/api';
 import { PermissionMode, TableButton } from '../../model/others/TableButton';
 import { TableHeader } from '../../model/others/TableHeader';
+import { RequestService } from '../services/request-service';
 import { ParentComponent } from './parent-component';
 
 @Directive({
     selector: '[appParentTable]',
 })
 export abstract class ParentTable<T> extends ParentComponent {
+    // global service
+    private readonly confirmationService = inject(ConfirmationService);
+    private readonly requestService = inject(RequestService);
     // for table attribute
     protected columns!: TableHeader[];
     protected mainButtonList: TableButton[] = [];
@@ -50,9 +55,23 @@ export abstract class ParentTable<T> extends ParentComponent {
     }
 
     onMainTableButtonClick(btn: any) {
-        this.dialogVisible = true;
-        this.dialogMode = btn.type;
         this.endpointUrl = this.endpointList.get(btn.type) || '';
+        if (btn.type === 'create') {
+            this.dialogVisible = true;
+            this.dialogMode = btn.type;
+            return;
+        }
+        if (this.selectedRows.length > 0) {
+            this.confirmationService.confirm({
+                header: 'Are you sure?',
+                message: 'Please confirm to proceed.',
+                accept: () => {
+                    this.requestService.postBackend(this.endpointUrl, this.selectedRows).subscribe({
+                        next: () => {},
+                    });
+                },
+            });
+        }
     }
 
     onRowTableButtonClick(event: any) {

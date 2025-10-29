@@ -18,6 +18,7 @@ export class AuthenticationService {
     loading = signal<boolean>(true);
 
     redirectUrl: string | null = null;
+    lastMenuAccessed: RouterItem | null = null;
 
     private readonly idleTimeoutMs = 15 * 60 * 1000;
     private idleSub?: Subscription;
@@ -61,6 +62,7 @@ export class AuthenticationService {
             } else {
                 this.redirectUrl = `/${tempRouterItem.routerLink}`;
             }
+            this.lastMenuAccessed = tempRouterItem;
             return;
         }
         this.getFirstMenuUrl(tempRouterItem.items);

@@ -1,6 +1,7 @@
+import { isPlatformBrowser } from '@angular/common';
 import { Directive, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
-import { filter, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { RoleDetail } from '../../model/custom-entity/RoleDetail';
 import { UserSession } from '../../model/custom-entity/UserSession';
 import { RouterItem } from '../../model/others/RouterItem';
@@ -17,15 +18,30 @@ export abstract class ParentComponent implements OnInit, OnDestroy {
     private routerSub?: Subscription;
     private _activeMenuItem: RouterItem | null = null;
 
-    ngOnInit(): void {
-        // update once when route changes
-        this.routerSub = this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
-            this._activeMenuItem = this.resolveActiveMenuItem();
-        });
-
-        // initialize for current route
-        this._activeMenuItem = this.resolveActiveMenuItem();
+    constructor() {
+        if (isPlatformBrowser(this.platformId)) {
+            const nav = this.router.currentNavigation();
+            const menuItem = nav?.extras?.state?.['menuItem'];
+            this._activeMenuItem = menuItem ?? this.resolveActiveMenuItem();
+        }
     }
+
+    ngOnInit(): void {
+        console.log(
+            'Initial Active Menu:',
+            this._activeMenuItem,
+            this.authenticationService.lastMenuAccessed,
+            this.authenticationService.redirectUrl
+        );
+    }
+    //     // update once when route changes
+    //     this.routerSub = this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
+    //         this._activeMenuItem = this.resolveActiveMenuItem();
+    //     });
+
+    //     // initialize for current route
+    //     this._activeMenuItem = this.resolveActiveMenuItem();
+    // }
 
     ngOnDestroy(): void {
         this.routerSub?.unsubscribe();
@@ -78,5 +94,6 @@ export abstract class ParentComponent implements OnInit, OnDestroy {
 
     protected get currentMenuLabel(): string {
         return this._activeMenuItem?.label ?? this.router.url.replaceAll('/', '');
+        // return this.authenticationService.
     }
 }

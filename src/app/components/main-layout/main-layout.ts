@@ -89,7 +89,7 @@ export class MainLayout implements OnInit, OnDestroy {
                     tempMenuItem.items = this.convertToMenuItem(item.items);
                 }
                 if (item.roles && item.roles.length > 0) {
-                    tempMenuItem.state = { roles: item.roles };
+                    tempMenuItem.state = { roles: item.roles, menuItem: item };
                 }
                 return tempMenuItem;
             });

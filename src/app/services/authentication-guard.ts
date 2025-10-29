@@ -17,20 +17,4 @@ export const authenticationGuard: CanActivateFn = (route, state) => {
 
     auth.redirectUrl = state.url;
     return of(router.createUrlTree(['/login']));
-
-    // if (!isPlatformBrowser(platformId)) {
-    //     return of(true); // SSR: skip redirect
-    // }
-
-    // return combineLatest([auth.user$, auth.loading$]).pipe(
-    //     filter(([_, loading]) => !loading), // wait until loadCurrentUser() finishes
-    //     take(1),
-    //     map(([user]) => {
-    //         if (user) {
-    //             return true;
-    //         }
-    //         auth.redirectUrl = state.url;
-    //         return router.createUrlTree(['/login']);
-    //     })
-    // );
 };

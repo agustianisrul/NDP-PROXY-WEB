@@ -1,4 +1,4 @@
-import { InputParameter } from './InputParameter';
+import { OptionsParameter } from './OptionsParameter';
 
 export interface TableHeader {
     key: string;
@@ -6,16 +6,28 @@ export interface TableHeader {
     sortable?: boolean;
     width?: string;
     align?: 'left' | 'right' | 'center'; // default is left
-    type?: 'number' | 'boolean' | 'date' | 'string' | 'icon'; // default is string
-    format?: string; // for date/boolean/string formatting
-    values?: Record<string | number, string>; // for enum conversion
+    labelUsingIcon?: boolean; // is value using icon special for icon in menu
+    dateFormat?: string; // for date/boolean/string formatting
+    // values?: Record<string | number, string>; // for enum conversion
     // options?: { id: string | number; label: string }[]; // array of objects for lookup
-    displayAt?: 'table' | 'detail' | 'both' | 'none';
-    optionsParameter?: InputParameter;
+    displayAt?: 'table' | 'detail' | 'none';
+    optionsParameter?: OptionsParameter;
     validators?: {
         required?: boolean;
         email?: boolean;
-        custom?: (value: any) => boolean; // return false if invalid
-        customMessage?: string;
+        passwordPolicy?: boolean;
     };
+    componentType?:
+        | 'p-checkbox'
+        | 'p-datepicker'
+        | 'p-inputnumber'
+        | 'input'
+        | 'p-multiselect'
+        | 'p-password'
+        | 'p-radiobutton'
+        | 'p-select'
+        | 'textarea'
+        | 'p-togglebutton'
+        | 'p-toggleswitch'
+        | 'tree-menu-picker';
 }

@@ -27,7 +27,8 @@
                         "outputMode": "server",
                         "ssr": {
                             "entry": "src/server.ts"
-                        }
+                        },
+                        "externalDependencies": ["better-sqlite3", "sqlite3", "oracledb", "pg-query-stream", "mysql2", "mysql", "tedious"]
                     },
                     "configurations": {
                         "production": {

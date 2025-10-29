@@ -5,7 +5,7 @@ export interface User extends BaseEntity {
     password: string;
     is_twofa_enabled: number;
     twofa_secret: string;
-    deleteable: number;
+    deleted: number;
     last_login: Date;
     last_logout: Date;
     status: number;

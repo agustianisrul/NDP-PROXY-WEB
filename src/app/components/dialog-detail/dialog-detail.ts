@@ -1,16 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { PermissionMode } from '../../../model/others/TableButton';
 import { TableHeader } from '../../../model/others/TableHeader';
+import { DateService } from '../../services/date-service';
 import { RequestService } from '../../services/request-service';
+import { createPasswordValidator } from '../password-validation';
+import { TreeMenuPicker } from '../tree-menu-picker/tree-menu-picker';
+
+interface PasswordValidationResult {
+    valid: boolean;
+    errors: string[];
+}
 
 @Component({
     standalone: true,
@@ -27,6 +36,8 @@ import { RequestService } from '../../services/request-service';
         SelectModule,
         ButtonModule,
         MultiSelectModule,
+        PasswordModule,
+        TreeMenuPicker,
     ],
 })
 export class DialogDetail implements OnChanges {
@@ -44,7 +55,7 @@ export class DialogDetail implements OnChanges {
     form!: FormGroup;
     dataOptions = new Map<string, any[]>();
 
-    constructor(private readonly fb: FormBuilder, private readonly requestService: RequestService) {}
+    constructor(private readonly fb: FormBuilder, private readonly requestService: RequestService, private readonly dateService: DateService) {}
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['headers'] || changes['model'] || changes['mode']) {
@@ -55,39 +66,65 @@ export class DialogDetail implements OnChanges {
     private buildForm() {
         const group: Record<string, any> = {};
         for (const header of this.headers) {
-            const validators: ValidatorFn[] = [];
-
-            // Required
-            if (header.validators?.required) validators.push(Validators.required);
-
-            // Email
-            if (header.validators?.email) validators.push(Validators.email);
-
-            // Custom
-            if (header.validators?.custom) {
-                validators.push((control: AbstractControl) => {
-                    return header.validators!.custom!(control.value) ? null : { custom: header.validators!.customMessage || 'Invalid value' };
-                });
-            }
+            const validators: ValidatorFn[] = header.validators ? this.buildAllValidator(header) : [];
             group[header.key] = [this.model?.[header.key] ?? null, validators];
-            this.fetchDataOptions(header);
+            this.form = this.fb.group(group);
+
+            if (header.componentType && ['p-multiselect', 'p-select'].includes(header.componentType)) {
+                this.fetchDataOptions(header);
+            }
         }
-        this.form = this.fb.group(group);
+    }
+
+    private buildAllValidator(header: TableHeader): ValidatorFn[] {
+        const validators: ValidatorFn[] = [];
+
+        // Required
+        if (header.validators?.required) validators.push(Validators.required);
+
+        // Email
+        if (header.validators?.email) validators.push(Validators.email);
+
+        // password policy
+        if (header.validators?.passwordPolicy) {
+            const policy = {
+                minLength: 8,
+                requireUppercase: true,
+                requireNumber: true,
+                requireSpecialChar: true,
+                allowedSpecialChars: '!@#$%^&*()_+[]{}|;:,.?~-',
+            };
+            validators.push(createPasswordValidator(policy));
+        }
+
+        return validators;
     }
 
     private fetchDataOptions(header: TableHeader): void {
         const optionsConfig = header.optionsParameter;
-        if (!optionsConfig?.url) return;
-
+        if (!optionsConfig?.data && !optionsConfig?.url) return;
         // Avoid re-fetching if already cached
         if (this.dataOptions.has(header.key)) return;
 
-        this.requestService.getBackend(optionsConfig.url).subscribe({
-            next: (res: any) => {
-                this.dataOptions.set(header.key, res.data || []);
-            },
-            error: (err) => console.error(`Failed to load options for ${header.key}`, err),
-        });
+        if (optionsConfig.data) {
+            this.dataOptions.set(header.key, optionsConfig.data || []);
+            return;
+        }
+
+        if (optionsConfig.url) {
+            this.requestService.getBackend(optionsConfig.url).subscribe({
+                next: (res: any) => {
+                    this.dataOptions.set(header.key, res.data || []);
+                },
+                error: (err) => console.error(`Failed to load options for ${header.key}`, err),
+            });
+        }
+    }
+
+    get passwordErrors(): string[] {
+        const control = this.form.get('password');
+        const errors = control?.errors?.['passwordPolicy'] as string[] | undefined;
+        return errors ?? [];
     }
 
     onSave() {
@@ -119,35 +156,27 @@ export class DialogDetail implements OnChanges {
         this.form.reset();
     }
 
+    private getNestedValue(obj: any, path: string): any {
+        if (!obj || !path) return '';
+        return path.split('.').reduce((acc, part) => acc[part], obj);
+    }
+
     getDisplayValue(header: TableHeader): any {
-        const value = this.model ? this.model[header.key] : null;
+        const cellValue = this.model[header.key];
 
-        // ENUM / VALUES
-        if (header.values && value !== null && value !== undefined) {
-            return header.values[value] ?? value;
+        if (header.dateFormat) {
+            return cellValue ? this.dateService.format(cellValue, header.dateFormat) : this.dateService.format(cellValue);
         }
 
-        // OPTIONS ARRAY
-        // if (header.optionsParameter && value !== null && value !== undefined) {
-        //     const found = header.optionsParameter.find((o: any) => o.id === value);
-        //     return found ? found.label : value;
-        // }
-
-        // DATE formatting (basic, you can inject DatePipe if needed)
-        if (header.type === 'date' && value) {
-            return new Date(value).toLocaleDateString();
+        if (header.optionsParameter?.data && header.optionsParameter?.data.length > 0) {
+            return header.optionsParameter?.data.map((item) => item[header.optionsParameter?.keyLabel ?? cellValue]).join(', ');
         }
 
-        // BOOLEAN formatting
-        if (header.type === 'boolean') {
-            return value ? 'Yes' : 'No';
-        }
-
-        return value ?? '-';
+        return cellValue ?? '-';
     }
 
     isDisplayInForm(column: TableHeader): boolean {
         if (!column.displayAt) return true;
-        return ['detail', 'both'].includes(column.displayAt);
+        return 'detail' === column.displayAt;
     }
 }

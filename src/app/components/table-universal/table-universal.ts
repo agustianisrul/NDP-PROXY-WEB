@@ -95,39 +95,29 @@ export class TableUniversal<T> implements OnInit, OnChanges {
         return this.data ? this.first === 0 : true;
     }
 
-    formatValue(cellValue: any, col: TableHeader): any {
-        switch (col.type) {
-            case 'date': {
-                const dateFormat = col.format ?? 'DD/MM/YYYY';
-                return cellValue ? this.dateService.format(cellValue, dateFormat) : '';
-            }
-            case 'boolean': {
-                const resultConvert = this.convertUsingEnumOrOptions(cellValue, col);
-                if (resultConvert !== null) return resultConvert;
-                return cellValue ? 'True' : 'False';
-            }
-            case 'number': {
-                const resultConvert = this.convertUsingEnumOrOptions(cellValue, col);
-                if (resultConvert !== null) return resultConvert;
-                return cellValue;
-            }
-            default: {
-                return cellValue;
-            }
-        }
+    private getNestedValue(obj: any, path: string): any {
+        if (!obj || !path) return '';
+        return path.split('.').reduce((acc, part) => acc && acc[part], obj);
     }
 
-    private convertUsingEnumOrOptions(cellValue: any, col: TableHeader): any {
-        if (col.values) {
-            return col.values[cellValue] ?? cellValue;
+    getDisplayValue(row: any, header: TableHeader): any {
+        const cellValue = row[header.key]; //this.getNestedValue(row, header.key);
+
+        if (header.dateFormat) {
+            return cellValue ? this.dateService.format(cellValue, header.dateFormat) : this.dateService.format(cellValue);
         }
-        return null;
+
+        if (header.optionsParameter?.data && header.optionsParameter?.data.length > 0) {
+            return header.optionsParameter?.data.map((item) => item[header.optionsParameter?.keyLabel ?? cellValue]).join(', ');
+        }
+
+        return cellValue ?? '-';
     }
 
     isDisplayInTable(header: TableHeader) {
         if (!header.displayAt) return true;
 
-        return ['table', 'both'].includes(header.displayAt);
+        return 'table' === header.displayAt;
     }
 
     onMainTableButtonClick(btn: TableButton) {

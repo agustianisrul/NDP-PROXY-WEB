@@ -1,0 +1,67 @@
+<div class="flex flex-col md:flex-row gap-6">
+    <!-- LEFT SIDE -->
+    <div class="flex-1">
+        <h3 class="font-semibold mb-2">Available Menus</h3>
+        <p-tree
+            [value]="availableMenus()"
+            class="flex-1 border border-surface rounded-lg"
+            [draggableNodes]="true"
+            [droppableNodes]="true"
+            [draggableScope]="['first', 'self']"
+            [droppableScope]="['second', 'self']"
+            selectionMode="single"
+            [filter]="true"
+            scrollHeight="250px"
+        >
+            <ng-template #empty> No Items Left </ng-template>
+        </p-tree>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="flex-1">
+        <h3 class="font-semibold mb-2">Selected Menus</h3>
+        <p-tree
+            [value]="selectedMenus()"
+            class="flex-1 border border-surface rounded-lg"
+            [draggableNodes]="true"
+            [droppableNodes]="true"
+            [draggableScope]="['second', 'self']"
+            [droppableScope]="['first', 'self']"
+            selectionMode="single"
+            [filter]="true"
+            scrollHeight="250px"
+        >
+            <ng-template #empty> Drag Nodes Here </ng-template>
+        </p-tree>
+        <!-- <p-tree
+            [value]="selectedMenus"
+            droppableNodes="true"
+            draggableNodes="true"
+            dragdropScope="menuscope"
+            (onNodeDrop)="onNodeDrop($event)"
+            (onNodeSelect)="openPermissionDialog($event.node.data)"
+            class="border rounded-lg p-2 bg-white shadow-sm"
+        ></p-tree> -->
+    </div>
+</div>
+
+<!-- PERMISSION DIALOG -->
+<!-- <p-dialog [(visible)]="showPermissionDialog" [modal]="true" [closable]="false" header="Assign Permissions" [style]="{ width: '400px' }">
+    <p class="mb-2">
+        Select permissions for <b>{{ currentEditNode?.label }}</b
+        >:
+    </p>
+
+    <p-multiselect [options]="availablePermissions" [(ngModel)]="selectedPermissions" display="chip" class="w-full"></p-multiselect>
+
+    <div class="flex justify-end mt-4 gap-2">
+        <button pButton label="Cancel" class="p-button-text" (click)="cancelPermissions()"></button>
+        <button pButton label="Save" icon="pi pi-check" (click)="savePermissions()"></button>
+    </div>
+</p-dialog> -->
+
+<!-- DEBUG OUTPUT -->
+<!-- <div class="mt-6 bg-gray-50 p-4 rounded-md shadow-sm">
+    <h3 class="font-semibold mb-2">Selected Tree:</h3>
+    <pre class="text-sm text-gray-700">{{ selectedMenus() | json }}</pre>
+</div> -->

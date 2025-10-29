@@ -54,7 +54,7 @@ export class Dashboard implements OnInit {
             { label: 'File Name', key: 'fileName', sortable: true },
             { label: 'Action', key: 'action', sortable: true },
             { label: 'Status', key: 'status', sortable: true },
-            { label: 'Processing Date', key: 'updatedDate', sortable: true, type: 'date', format: 'yyyy-MM-dd' },
+            { label: 'Processing Date', key: 'updatedDate', sortable: true, dateFormat: 'yyyy-MM-dd' },
         ];
     }
 
