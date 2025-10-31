@@ -49,7 +49,7 @@ export async function getGroup(req: Request, res: Response) {
 
 export async function addGroup(req: Request, res: Response) {
     try {
-        const requestBodyGroup: GroupDetail = req.body;
+        const requestBodyGroup: any = req.body;
         const userInfo: UserSession = (req.session as any).user;
         const existingGroup: Group | null = await genericRepository.findOne<Group>('tm_group', [
             { column: 'groupname', operator: '=', value: requestBodyGroup.groupname },
@@ -58,8 +58,19 @@ export async function addGroup(req: Request, res: Response) {
             return ResponseHelper.error(res, 'Group name Already taken!, please use anything else');
         }
 
+        let menuData = requestBodyGroup.menublob;
+        if (typeof menuData === 'string') {
+            try {
+                menuData = JSON.parse(menuData);
+            } catch (err) {
+                console.error('Invalid menublob JSON:', err);
+                menuData = {}; // fallback to empty object
+            }
+        }
+
         const payloadInsert: Partial<Group> = {
             ...requestBodyGroup,
+            menublob: menuData,
             idgroup: uuidv4(),
             created_by: userInfo.iduser,
             created_date: nowJSDate(),
@@ -77,11 +88,29 @@ export async function addGroup(req: Request, res: Response) {
 
 export async function editGroup(req: Request, res: Response) {
     try {
-        const requestBodyGroup: GroupDetail = req.body;
+        const requestBodyGroup: any = req.body;
         const userInfo: UserSession = (req.session as any).user;
+
+        let parsedMenublob: any = requestBodyGroup.menublob;
+
+        // Handle if menublob is JSON string
+        if (typeof parsedMenublob === 'string') {
+            try {
+                parsedMenublob = JSON.parse(parsedMenublob);
+            } catch (err) {
+                console.error('❌ menublob parse error:', err);
+                parsedMenublob = null;
+            }
+        }
+
+        // Handle if menublob is empty string or invalid
+        if (!parsedMenublob || typeof parsedMenublob !== 'object') {
+            parsedMenublob = null;
+        }
 
         const payloadInsert: Partial<Group> = {
             ...requestBodyGroup,
+            menublob: parsedMenublob,
             updated_by: userInfo?.iduser,
             updated_date: nowJSDate(),
             deleteable: requestBodyGroup.deleteable ? 1 : 0,

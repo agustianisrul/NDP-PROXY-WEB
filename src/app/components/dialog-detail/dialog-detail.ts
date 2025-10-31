@@ -15,6 +15,7 @@ import { DateService } from '../../services/date-service';
 import { RequestService } from '../../services/request-service';
 import { createPasswordValidator } from '../password-validation';
 import { TreeMenuPicker } from '../tree-menu-picker/tree-menu-picker';
+import { availableMenu, selectedTreeMenus, selectedTreeNode } from '../tree.store';
 
 interface PasswordValidationResult {
     valid: boolean;
@@ -66,12 +67,15 @@ export class DialogDetail implements OnChanges {
     private buildForm() {
         const group: Record<string, any> = {};
         for (const header of this.headers) {
-            const validators: ValidatorFn[] = header.validators ? this.buildAllValidator(header) : [];
-            group[header.key] = [this.model?.[header.key] ?? null, validators];
-            this.form = this.fb.group(group);
+            const isPrimaryKeyId = header.key.toLowerCase().includes('id');
+            if (this.isDisplayInForm(header) || isPrimaryKeyId) {
+                const validators: ValidatorFn[] = header.validators ? this.buildAllValidator(header) : [];
+                group[header.key] = [this.model?.[header.key] ?? null, validators];
+                this.form = this.fb.group(group);
 
-            if (header.componentType && ['p-multiselect', 'p-select'].includes(header.componentType)) {
-                this.fetchDataOptions(header);
+                if (header.componentType && ['p-multiselect', 'p-select', 'tree-menu-picker'].includes(header.componentType)) {
+                    this.fetchDataOptions(header);
+                }
             }
         }
     }
@@ -115,6 +119,10 @@ export class DialogDetail implements OnChanges {
             this.requestService.getBackend(optionsConfig.url).subscribe({
                 next: (res: any) => {
                     this.dataOptions.set(header.key, res.data || []);
+                    if (header.componentType === 'tree-menu-picker') {
+                        availableMenu.set(res.data);
+                        selectedTreeNode.set(this.model?.[header.key] ?? []);
+                    }
                 },
                 error: (err) => console.error(`Failed to load options for ${header.key}`, err),
             });
@@ -129,11 +137,17 @@ export class DialogDetail implements OnChanges {
 
     onSave() {
         if (this.form.invalid) {
+            console.log('form invalid');
             this.form.markAllAsTouched();
             return;
         }
+        const payloadBody = this.form.value;
+        const headerTreeMenu = this.headers.find((item: TableHeader) => item.componentType === 'tree-menu-picker');
+        if (headerTreeMenu) {
+            payloadBody[headerTreeMenu.key] = selectedTreeMenus();
+        }
         if (this.endpoint) {
-            this.requestService.postBackend(this.endpoint, this.form.getRawValue()).subscribe({
+            this.requestService.postBackend(this.endpoint, payloadBody).subscribe({
                 next: () => {
                     this.saveClick.emit();
                     this.visibleChange.emit(false);

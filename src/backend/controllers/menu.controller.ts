@@ -7,6 +7,7 @@ import { RoleDetail } from '../../model/custom-entity/RoleDetail';
 import { UserSession } from '../../model/custom-entity/UserSession';
 import { Condition } from '../../model/others/ConditionQuery';
 import { JoinQuery } from '../../model/others/JoinQuery';
+import { Order } from '../../model/others/OrderQuery';
 import db from '../config/client';
 import { nowJSDate } from '../config/date-utils';
 import { GenericRepository } from '../repositories/generic.repository';
@@ -35,33 +36,44 @@ export class MenuController {
             { table: 'tm_menu_role', first: 'tm_menu_role.idMenu', operator: '=', second: 'tm_menus.idMenu', type: 'left' },
             { table: 'tm_role', first: 'tm_role.idRole', operator: '=', second: 'tm_menu_role.idRole', type: 'left' },
         ];
-        const resultQueryList: any[] = await genericRepository.select<Record<string, any>>('tm_menus', tempJoinQuery);
-        if (resultQueryList?.['length'] > 0) {
-            const menuRoleList: MenuRole[] = Object.values(
-                resultQueryList.reduce<Record<string, MenuRole>>((acc, record: any) => {
-                    if (!acc[record.tm_menus_idMenu]) {
-                        acc[record.tm_menus_idMenu] = {
-                            idMenu: record.tm_menus_idMenu,
-                            nameMenu: record.tm_menus_nameMenu,
-                            pathMenu: record.tm_menus_pathMenu,
-                            iconMenu: record.tm_menus_iconMenu,
-                            deleteable: record.tm_menus_deleteable === 1,
-                            roleList: [],
-                        };
-                    }
-                    if (record.tm_role_idRole && record.tm_role_rolename) {
-                        acc[record.tm_menus_idMenu].roleList.push({
-                            idRole: record.tm_role_idRole,
-                            rolename: record.tm_role_rolename,
-                            roledescription: record.tm_role_roledescription,
-                            deleteable: record.tm_role_deleteable === 1,
-                        });
-                    }
-                    return acc;
-                }, {} as Record<string, MenuRole>)
-            );
+
+        const columnOrdering: Order<any>[] = [{ column: 'tm_menus.nameMenu', direction: 'asc' }];
+        const resultQueryList: any[] = await genericRepository.select<Record<string, any>>('tm_menus', tempJoinQuery, [], columnOrdering);
+
+        if (resultQueryList?.length > 0) {
+            // ✅ Use Map to preserve order
+            const menuRoleMap = new Map<number | string, MenuRole>();
+
+            for (const record of resultQueryList) {
+                const idMenu = record.tm_menus_idMenu;
+                if (!menuRoleMap.has(idMenu)) {
+                    menuRoleMap.set(idMenu, {
+                        idMenu,
+                        nameMenu: record.tm_menus_nameMenu,
+                        pathMenu: record.tm_menus_pathMenu,
+                        iconMenu: record.tm_menus_iconMenu,
+                        deleteable: record.tm_menus_deleteable === 1,
+                        roleList: [],
+                    });
+                }
+
+                if (record.tm_role_idRole && record.tm_role_rolename) {
+                    const current = menuRoleMap.get(idMenu)!;
+                    current.roleList.push({
+                        idRole: record.tm_role_idRole,
+                        rolename: record.tm_role_rolename,
+                        roledescription: record.tm_role_roledescription,
+                        deleteable: record.tm_role_deleteable === 1,
+                    });
+                }
+            }
+
+            // ✅ Preserve insertion order
+            const menuRoleList = Array.from(menuRoleMap.values());
+
             return ResponseHelper.success(res, menuRoleList);
         }
+
         ResponseHelper.success(res);
     }
 
@@ -84,7 +96,7 @@ export class MenuController {
 
             const payloadInsert: Partial<Menu> = {
                 nameMenu: requestBodyMenu.nameMenu,
-                pathMenu: requestBodyMenu.pathMenu,
+                pathMenu: requestBodyMenu.pathMenu || requestBodyMenu.pathMenu !== '' ? requestBodyMenu.pathMenu : null,
                 iconMenu: requestBodyMenu.iconMenu,
                 created_by: userInfo?.iduser,
                 created_date: nowJSDate(),
@@ -121,7 +133,7 @@ export class MenuController {
             const payloadUpdate: Partial<Menu> = {
                 idMenu: requestBodyMenu.idMenu,
                 nameMenu: requestBodyMenu.nameMenu,
-                pathMenu: requestBodyMenu.pathMenu,
+                pathMenu: requestBodyMenu.pathMenu || requestBodyMenu.pathMenu !== '' ? requestBodyMenu.pathMenu : null,
                 iconMenu: requestBodyMenu.iconMenu,
                 created_by: userInfo?.iduser,
                 created_date: nowJSDate(),

@@ -6,6 +6,7 @@ import { MenuItem } from 'primeng/api';
 import { RippleModule } from 'primeng/ripple';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { AuthenticationService } from '../services/authentication-service';
 import { LayoutService } from '../services/layout-service';
 
 @Component({
@@ -97,7 +98,7 @@ export class AppMenuitem implements OnDestroy, OnInit {
 
     key: string = '';
 
-    constructor(public router: Router, private layoutService: LayoutService) {
+    constructor(public router: Router, private readonly layoutService: LayoutService, private readonly authenticationService: AuthenticationService) {
         this.menuSourceSubscription = this.layoutService.menuSource$.subscribe((value: any) => {
             Promise.resolve(null).then(() => {
                 if (value.routeEvent) {
@@ -158,6 +159,8 @@ export class AppMenuitem implements OnDestroy, OnInit {
         if (this.item.items) {
             this.active = !this.active;
         }
+
+        this.authenticationService.lastMenuAccessed.set(this.item);
 
         this.layoutService.onMenuStateChange({ key: this.key });
     }

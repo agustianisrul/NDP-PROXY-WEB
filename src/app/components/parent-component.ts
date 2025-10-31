@@ -1,7 +1,6 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Directive, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { Directive, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { GroupDetail } from '../../model/custom-entity/GroupDetail';
 import { RoleDetail } from '../../model/custom-entity/RoleDetail';
 import { UserSession } from '../../model/custom-entity/UserSession';
 import { RouterItem } from '../../model/others/RouterItem';
@@ -11,58 +10,39 @@ import { RoleEnumService } from '../services/role-enum-service';
 @Directive({
     selector: '[appParentComponent]',
 })
-export abstract class ParentComponent implements OnInit, OnDestroy {
+export abstract class ParentComponent implements OnInit {
     protected readonly router = inject(Router);
     private readonly authenticationService = inject(AuthenticationService);
     protected readonly platformId = inject(PLATFORM_ID);
-    private routerSub?: Subscription;
     private _activeMenuItem: RouterItem | null = null;
 
-    constructor() {
-        if (isPlatformBrowser(this.platformId)) {
-            const nav = this.router.currentNavigation();
-            const menuItem = nav?.extras?.state?.['menuItem'];
-            this._activeMenuItem = menuItem ?? this.resolveActiveMenuItem();
+    ngOnInit(): void {
+        const groupDetail: GroupDetail | null = this.authenticationService.group();
+        const currentMenuItem = this.authenticationService.lastMenuAccessed();
+        const routerItemList: RouterItem[] | null = groupDetail?.menublob && groupDetail.menublob.length > 0 ? groupDetail.menublob : null;
+        const routerItem: RouterItem | null = this.findMenuItemByUrl(routerItemList, this.router.url, currentMenuItem?.label ?? '');
+        if (routerItem) {
+            this._activeMenuItem = routerItem;
+        } else {
+            this._activeMenuItem = {
+                label: currentMenuItem?.label || '',
+                icon: '',
+                items: [],
+                roles: [],
+                routerLink: currentMenuItem?.routerLink,
+            };
         }
     }
 
-    ngOnInit(): void {
-        console.log(
-            'Initial Active Menu:',
-            this._activeMenuItem,
-            this.authenticationService.lastMenuAccessed,
-            this.authenticationService.redirectUrl
-        );
-    }
-    //     // update once when route changes
-    //     this.routerSub = this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
-    //         this._activeMenuItem = this.resolveActiveMenuItem();
-    //     });
-
-    //     // initialize for current route
-    //     this._activeMenuItem = this.resolveActiveMenuItem();
-    // }
-
-    ngOnDestroy(): void {
-        this.routerSub?.unsubscribe();
-    }
-
-    private resolveActiveMenuItem(): RouterItem | null {
-        const currentUrl = this.router.url;
-        const groupDetail = this.authenticationService.group();
-        const routerItemList: RouterItem[] | null = groupDetail?.menublob && groupDetail.menublob.length > 0 ? groupDetail.menublob : null;
-        return this.findMenuItemByUrl(routerItemList, currentUrl);
-    }
-
-    private findMenuItemByUrl(routerItemList: RouterItem[] | null, currentUrl: string): RouterItem | null {
+    private findMenuItemByUrl(routerItemList: RouterItem[] | null, currentUrl: string, currentLabel: string): RouterItem | null {
         if (!routerItemList?.length) return null;
 
         for (const routerItem of routerItemList) {
-            if (routerItem?.routerLink && currentUrl.includes(routerItem.routerLink)) {
+            if (routerItem?.routerLink && currentUrl.includes(routerItem.routerLink) && routerItem.label === currentLabel) {
                 return routerItem;
             }
             if (routerItem.items?.length) {
-                const found = this.findMenuItemByUrl(routerItem.items, currentUrl);
+                const found = this.findMenuItemByUrl(routerItem.items, currentUrl, currentLabel);
                 if (found) return found;
             }
         }
@@ -93,7 +73,7 @@ export abstract class ParentComponent implements OnInit, OnDestroy {
     }
 
     protected get currentMenuLabel(): string {
-        return this._activeMenuItem?.label ?? this.router.url.replaceAll('/', '');
-        // return this.authenticationService.
+        const currentMenuItem = this.authenticationService.lastMenuAccessed();
+        return currentMenuItem?.label ? currentMenuItem.label : this.router.url.replaceAll('/', '');
     }
 }

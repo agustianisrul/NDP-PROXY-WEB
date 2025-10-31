@@ -13,7 +13,5 @@ import { RequestService } from '../../../services/request-service';
 export class ServerConfig extends ParentComponent implements OnInit {
     private readonly requestService = inject(RequestService);
 
-    override ngOnInit(): void {
-        super.ngOnInit();
-    }
+    override ngOnInit(): void {}
 }

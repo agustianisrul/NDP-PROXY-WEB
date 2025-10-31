@@ -101,7 +101,7 @@ export class TableUniversal<T> implements OnInit, OnChanges {
     }
 
     getDisplayValue(row: any, header: TableHeader): any {
-        const cellValue = row[header.key]; //this.getNestedValue(row, header.key);
+        const cellValue = header.key.includes('.') ? this.getNestedValue(row, header.key) : row[header.key];
 
         if (header.dateFormat) {
             return cellValue ? this.dateService.format(cellValue, header.dateFormat) : this.dateService.format(cellValue);

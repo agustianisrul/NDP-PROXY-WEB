@@ -85,11 +85,11 @@ export class MainLayout implements OnInit, OnDestroy {
                 if (item.routerLink) {
                     tempMenuItem.routerLink = item.routerLink;
                 }
-                if (item.items && item.items.length > 0) {
-                    tempMenuItem.items = this.convertToMenuItem(item.items);
-                }
                 if (item.roles && item.roles.length > 0) {
                     tempMenuItem.state = { roles: item.roles, menuItem: item };
+                }
+                if (item.items && item.items.length > 0) {
+                    tempMenuItem.items = this.convertToMenuItem(item.items);
                 }
                 return tempMenuItem;
             });

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TreeDragDropService, TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -7,6 +7,9 @@ import { DialogModule } from 'primeng/dialog';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { PickListModule } from 'primeng/picklist';
 import { Tree, TreeModule } from 'primeng/tree';
+import { MenuRole } from '../../../model/custom-entity/MenuRole';
+import { RouterItem } from '../../../model/others/RouterItem';
+import { availableMenu, selectedTreeMenus, selectedTreeNode } from '../tree.store';
 
 @Component({
     selector: 'app-tree-menu-picker',
@@ -23,95 +26,119 @@ import { Tree, TreeModule } from 'primeng/tree';
         `,
     ],
 })
-export class TreeMenuPicker implements OnInit {
-    availableMenus = signal<TreeNode[]>([]);
-    selectedMenus = signal<TreeNode[]>([]);
+export class TreeMenuPicker {
+    availableTreeMenus: TreeNode[] = [];
+    treeMenuList: TreeNode[] = [];
 
-    // showPermissionDialog = false;
-    // currentEditNode: TreeMenuItem | null = null;
-    // selectedPermissions: string[] = [];
+    showPermissionDialog = false;
+    selectedNode: TreeNode = { label: '', key: '', data: { roleList: [] } };
+    selectedPermissions: string[] = [];
 
-    // availablePermissions = [
-    //     { label: 'View', value: 'view' },
-    //     { label: 'Create', value: 'create' },
-    //     { label: 'Edit', value: 'edit' },
-    //     { label: 'Delete', value: 'delete' },
-    // ];
+    constructor() {
+        effect(() => {
+            const tempSelectedMenuList: RouterItem[] | null = selectedTreeNode();
+            const tempAllMenuList: MenuRole[] | null = availableMenu();
+            const tempMenuList: MenuRole[] | null = this.removeAlreadySelectedMenu(tempSelectedMenuList, tempAllMenuList);
+            if (tempMenuList && tempMenuList.length > 0) {
+                const tempAvailableTreeNode: TreeNode[] = tempMenuList.map((item: MenuRole) => ({
+                    key: item.idMenu.toString(),
+                    label: item.nameMenu,
+                    icon: item.iconMenu,
+                    data: {
+                        routerLink: item.pathMenu,
+                        roles: item.roleList,
+                    },
+                }));
+                this.availableTreeMenus = tempAvailableTreeNode;
+            } else {
+                this.availableTreeMenus = [];
+            }
+            if (tempSelectedMenuList && tempSelectedMenuList.length > 0) {
+                this.treeMenuList = this.buildTreeNode(tempSelectedMenuList, tempAllMenuList);
+            } else {
+                this.treeMenuList = [];
+            }
+        });
+    }
 
-    ngOnInit(): void {
-        const data: TreeNode[] = [
-            { key: 'dashboard', label: 'Dashboard' },
-            { key: 'overview', label: 'Overview' },
-            { key: 'stats', label: 'Stats' },
-            { key: 'settings', label: 'Settings' },
-            { key: 'users', label: 'Users' },
-            { key: 'permissions', label: 'Permissions' },
-            { key: 'dashboard 2', label: 'Dashboard 2' },
-            { key: 'overview 2', label: 'Overview 2' },
-            { key: 'stats 2', label: 'Stats 2' },
-            { key: 'settings 2', label: 'Settings 2' },
-            { key: 'users 2', label: 'Users 2' },
-            { key: 'permissions 2', label: 'Permissions 2' },
-        ];
-        this.availableMenus.set(data);
-        this.selectedMenus.set([]);
+    private removeAlreadySelectedMenu(routerItemList: RouterItem[] | null, menuList: MenuRole[] | null): MenuRole[] | null {
+        if (!menuList || menuList.length == 0) return null;
+        if (!routerItemList || routerItemList.length === 0) return menuList;
+        for (const routerItem of routerItemList) {
+            if (routerItem.label) {
+                const tempFindIndexMenu = menuList.findIndex((item: MenuRole) => item.nameMenu === routerItem.label);
+                if (tempFindIndexMenu !== -1) {
+                    menuList.splice(tempFindIndexMenu, 1);
+                }
+            }
+            if (routerItem.items && routerItem.items.length > 0) {
+                this.removeAlreadySelectedMenu(routerItem.items, menuList);
+            }
+        }
+        return menuList;
+    }
+
+    private buildTreeNode(routerItemList: RouterItem[] | null, menuList: MenuRole[] | null): TreeNode[] {
+        if (!routerItemList || routerItemList.length === 0) return [];
+        return routerItemList.map((item: RouterItem, index) => ({
+            key:
+                menuList && menuList.length > 0
+                    ? menuList.find((menu: MenuRole) => menu.nameMenu === item.label)?.idMenu.toString()
+                    : `${index}-${item.label}`,
+            label: item.label,
+            icon: item.icon ?? '',
+            data: {
+                routerLink: item.routerLink,
+                roles: item.roles,
+            },
+            children: item.items ? this.buildTreeNode(item.items, menuList) : [],
+        }));
     }
 
     /** When user drags from left (flat) into tree */
-    // onNodeDrop(event: any) {
-    //     const draggedItem: FlatMenuItem = event.dragNode.data;
-    //     const dropNode: TreeMenuItem = event.dropNode?.data;
-    //     const dropPosition = event.dropPosition;
+    onNodeDrop(event: any) {
+        selectedTreeMenus.set(this.treeMenuList);
+    }
 
-    //     this.selectedMenus.
-    //     const newNode: TreeNode = {
-    //         key: draggedItem.key,
-    //         label: draggedItem.label,
-    //         children: [],
-    //     };
+    onNodeDoubleClick(event: any) {
+        this.showPermissionDialog = true;
+        this.selectedNode = event.node;
+        if (this.selectedNode.data.permission && this.selectedNode.data.permission.length > 0) {
+            this.selectedPermissions = this.selectedNode.data.permission;
+        } else {
+            this.selectedPermissions = [];
+        }
+    }
 
-    //     if (!dropNode) {
-    //         // dropped in empty space -> add as root
-    //         this.selectedMenus.set(newNode);
-    //     } else if (dropPosition === 0) {
-    //         // dropped on top of node -> nested child
-    //         dropNode.children = dropNode.children || [];
-    //         dropNode.children.push(newNode);
-    //     } else {
-    //         // dropped above/below -> sibling (root)
-    //         const index = this.selectedMenus.findIndex((n) => n.key === dropNode.key);
-    //         if (index >= 0) this.selectedMenus.splice(index + (dropPosition === 1 ? 1 : 0), 0, newNode);
-    //         else this.selectedMenus.push(newNode);
-    //     }
+    savePermissions() {
+        this.showPermissionDialog = false;
+        this.addPermissionToTreeMenu(this.treeMenuList, this.selectedNode, this.selectedPermissions);
+        selectedTreeMenus.set([...this.treeMenuList]); // trigger reactivity for signal
+    }
 
-    //     this.availableMenus = this.availableMenus.filter((m) => m.key !== draggedItem.key);
-    //     this.openPermissionDialog(newNode);
-    // }
+    private addPermissionToTreeMenu(nodes: TreeNode[], selectedNode: TreeNode, roleList: string[]): void {
+        for (const node of nodes) {
+            // 🧹 remove circular reference
+            if ('parent' in node) {
+                delete (node as any).parent;
+            }
 
-    // openPermissionDialog(node: TreeMenuItem) {
-    //     this.currentEditNode = node;
-    //     this.selectedPermissions = node.permissions || [];
-    //     this.showPermissionDialog = true;
-    // }
+            // 🎯 found the node to update
+            if (node.key === selectedNode.key) {
+                node.data = { ...node.data, permission: [...roleList] }; // replace permissions, no merge
+                return; // stop recursion once found
+            }
 
-    // savePermissions() {
-    //     if (this.currentEditNode) {
-    //         this.currentEditNode.permissions = [...this.selectedPermissions];
-    //     }
-    //     this.showPermissionDialog = false;
-    // }
+            // 🔁 recurse through children
+            if (node.children?.length) {
+                this.addPermissionToTreeMenu(node.children, selectedNode, roleList);
+            }
+        }
+    }
 
-    // cancelPermissions() {
-    //     // if user cancels and node has no permissions, remove it
-    //     if (this.currentEditNode && !this.currentEditNode.permissions?.length) {
-    //         this.removeNodeByKey(this.currentEditNode.key);
-    //         this.availableMenus.push({
-    //             key: this.currentEditNode.key,
-    //             label: this.currentEditNode.label,
-    //         });
-    //     }
-    //     this.showPermissionDialog = false;
-    // }
+    cancelPermissions() {
+        this.showPermissionDialog = false;
+    }
 
     // removeNodeByKey(key: string) {
     //     const remove = (nodes: TreeMenuItem[]): TreeMenuItem[] => {

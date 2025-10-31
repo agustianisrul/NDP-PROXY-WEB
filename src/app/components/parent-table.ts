@@ -1,4 +1,4 @@
-import { Directive, inject } from '@angular/core';
+import { Directive, inject, OnInit } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { PermissionMode, TableButton } from '../../model/others/TableButton';
 import { TableHeader } from '../../model/others/TableHeader';
@@ -8,7 +8,7 @@ import { ParentComponent } from './parent-component';
 @Directive({
     selector: '[appParentTable]',
 })
-export abstract class ParentTable<T> extends ParentComponent {
+export abstract class ParentTable<T> extends ParentComponent implements OnInit {
     // global service
     private readonly confirmationService = inject(ConfirmationService);
     private readonly requestService = inject(RequestService);
@@ -28,8 +28,6 @@ export abstract class ParentTable<T> extends ParentComponent {
     protected endpointList = new Map<string, string>();
 
     override ngOnInit(): void {
-        super.ngOnInit();
-
         this.actionButtonList = [{ label: 'View', icon: 'pi pi-eye', severity: 'primary', type: 'view' }];
 
         if (this.hasRole('CREATE')) {

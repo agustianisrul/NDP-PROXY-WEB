@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { MenuItem } from 'primeng/api';
 import { firstValueFrom, fromEvent, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { GroupDetail } from '../../model/custom-entity/GroupDetail';
@@ -18,7 +19,7 @@ export class AuthenticationService {
     loading = signal<boolean>(true);
 
     redirectUrl: string | null = null;
-    lastMenuAccessed: RouterItem | null = null;
+    lastMenuAccessed = signal<MenuItem | null>(null);
 
     private readonly idleTimeoutMs = 15 * 60 * 1000;
     private idleSub?: Subscription;
@@ -62,7 +63,6 @@ export class AuthenticationService {
             } else {
                 this.redirectUrl = `/${tempRouterItem.routerLink}`;
             }
-            this.lastMenuAccessed = tempRouterItem;
             return;
         }
         this.getFirstMenuUrl(tempRouterItem.items);
