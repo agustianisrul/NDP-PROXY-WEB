@@ -9,12 +9,17 @@
             "root": "",
             "sourceRoot": "src",
             "prefix": "app",
+            "cli": {
+                "analytics": false
+            },
             "architect": {
                 "build": {
                     "builder": "@angular/build:application",
                     "options": {
                         "browser": "src/main.ts",
-                        "polyfills": ["zone.js"],
+                        "polyfills": [
+                            "zone.js"
+                        ],
                         "tsConfig": "tsconfig.app.json",
                         "assets": [
                             {
@@ -22,13 +27,28 @@
                                 "input": "public"
                             }
                         ],
-                        "styles": ["src/styles.css", "node_modules/primeicons/primeicons.css"],
+                        "styles": [
+                            "src/styles.css",
+                            "node_modules/primeicons/primeicons.css"
+                        ],
                         "server": "src/main.server.ts",
                         "outputMode": "server",
                         "ssr": {
                             "entry": "src/server.ts"
                         },
-                        "externalDependencies": ["better-sqlite3", "sqlite3", "oracledb", "pg-query-stream", "mysql2", "mysql", "tedious"]
+                        "externalDependencies": [
+                            "better-sqlite3",
+                            "sqlite3",
+                            "oracledb",
+                            "pg-query-stream",
+                            "mysql2",
+                            "mysql",
+                            "tedious"
+                        ],
+                        "allowedCommonJsDependencies": [
+                            "exceljs",
+                            "file-saver"
+                        ]
                     },
                     "configurations": {
                         "production": {
@@ -72,7 +92,10 @@
                 "test": {
                     "builder": "@angular/build:karma",
                     "options": {
-                        "polyfills": ["zone.js", "zone.js/testing"],
+                        "polyfills": [
+                            "zone.js",
+                            "zone.js/testing"
+                        ],
                         "tsConfig": "tsconfig.spec.json",
                         "assets": [
                             {
@@ -80,10 +103,18 @@
                                 "input": "public"
                             }
                         ],
-                        "styles": ["src/styles.css", "node_modules/primeicons/primeicons.css"]
+                        "styles": [
+                            "src/styles.css",
+                            "node_modules/primeicons/primeicons.css"
+                        ]
                     }
                 }
             }
         }
+    },
+    "cli": {
+        "packageManager": "npm",
+        "analytics": false,
+        "schematicCollections": []
     }
 }

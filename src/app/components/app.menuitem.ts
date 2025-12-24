@@ -10,35 +10,28 @@ import { AuthenticationService } from '../services/authentication-service';
 import { LayoutService } from '../services/layout-service';
 
 @Component({
-    // eslint-disable-next-line @angular-eslint/component-selector
+    standalone: true,
     selector: '[app-menuitem]',
     imports: [CommonModule, RouterModule, RippleModule],
     template: `
         <ng-container>
-            <div *ngIf="root && item.visible !== false" class="layout-menuitem-root-text">{{ item.label }}</div>
-            <a
-                *ngIf="(!item.routerLink || item.items) && item.visible !== false"
-                [attr.href]="item.url"
-                (click)="itemClick($event)"
-                [ngClass]="item.styleClass"
-                [attr.target]="item.target"
-                tabindex="0"
-                pRipple
-            >
+            @if (root && item.visible !== false) {
+            <div class="layout-menuitem-root-text">{{ item.label }}</div>
+            } @if ((!item.routerLink || item.items) && item.visible !== false) {
+            <a [attr.href]="item.url" (click)="itemClick($event)" [ngClass]="item.styleClass" [attr.target]="item.target" tabindex="0" pRipple>
                 <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
                 <span class="layout-menuitem-text">{{ item.label }}</span>
-                <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
+                @if (item.items) {
+                <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
+                }
             </a>
-
-            <!-- [routerLinkActiveOptions]="
-                    item.routerLinkActiveOptions || { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }
-                " -->
+            } @if (item.routerLink && !item.items && item.visible !== false) {
             <a
-                *ngIf="item.routerLink && !item.items && item.visible !== false"
                 (click)="itemClick($event)"
                 [ngClass]="item.styleClass"
-                [routerLink]="item.routerLink"
                 routerLinkActive="active-route"
+                [routerLink]="item.routerLink"
+                [routerLinkActiveOptions]="item.routerLinkActiveOptions || { exact: true }"
                 [fragment]="item.fragment"
                 [queryParamsHandling]="item.queryParamsHandling"
                 [preserveFragment]="item.preserveFragment"
@@ -52,14 +45,17 @@ import { LayoutService } from '../services/layout-service';
             >
                 <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
                 <span class="layout-menuitem-text">{{ item.label }}</span>
-                <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
+                @if (item.items) {
+                <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
+                }
             </a>
-
-            <ul *ngIf="item.items && item.visible !== false" [@children]="submenuAnimation">
+            } @if (item.items && item.visible !== false) {
+            <ul [@children]="submenuAnimation">
                 <ng-template ngFor let-child let-i="index" [ngForOf]="item.items">
                     <li app-menuitem [item]="child" [index]="i" [parentKey]="key" [class]="child['badgeClass']"></li>
                 </ng-template>
             </ul>
+            }
         </ng-container>
     `,
     animations: [
@@ -131,16 +127,7 @@ export class AppMenuitem implements OnDestroy, OnInit {
     }
 
     updateActiveStateFromRoute() {
-        let activeRoute = this.router.isActive(this.item.routerLink[0], {
-            paths: 'exact',
-            queryParams: 'ignored',
-            matrixParams: 'ignored',
-            fragment: 'ignored',
-        });
-
-        // if (activeRoute) {
         this.layoutService.onMenuStateChange({ key: this.key, routeEvent: true });
-        // }
     }
 
     itemClick(event: Event) {
@@ -160,9 +147,10 @@ export class AppMenuitem implements OnDestroy, OnInit {
             this.active = !this.active;
         }
 
-        this.authenticationService.lastMenuAccessed.set(this.item);
-
         this.layoutService.onMenuStateChange({ key: this.key });
+
+        // 🟢 Optimistically update title immediately
+        this.authenticationService.setLastMenuAccessed(this.item);
     }
 
     get submenuAnimation() {

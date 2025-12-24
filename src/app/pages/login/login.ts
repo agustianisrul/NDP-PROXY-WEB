@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { OnlyBrowserDirective } from '../../directives/only-browser.directive';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
@@ -12,7 +13,7 @@ import { AuthenticationService } from '../../services/authentication-service';
 @Component({
     standalone: true,
     selector: 'app-login',
-    imports: [CommonModule, FormsModule, RouterModule, ReactiveFormsModule, InputTextModule, PasswordModule, ButtonModule, MessageModule],
+    imports: [CommonModule, FormsModule, RouterModule, ReactiveFormsModule, InputTextModule, PasswordModule, ButtonModule, MessageModule, OnlyBrowserDirective],
     templateUrl: './login.html',
     styleUrl: './login.css',
 })
@@ -26,19 +27,12 @@ export class Login {
         password: new FormControl('', [Validators.required]),
     });
 
-    constructor(private readonly router: Router) {}
-
     onSubmit() {
         this.submitted = true;
         if (this.loginForm.invalid) return;
         const { username, password } = this.loginForm.value;
 
         this.authService.login(username!, password!).subscribe({
-            next: () => {
-                const target = this.authService.redirectUrl ?? '/dashboard';
-                this.authService.redirectUrl = null;
-                this.router.navigateByUrl(target);
-            },
             error: (err: HttpErrorResponse) => {
                 const message = err.error.message || 'Invalid username or password';
                 this.loginForm.setErrors({ invalidLogin: true });

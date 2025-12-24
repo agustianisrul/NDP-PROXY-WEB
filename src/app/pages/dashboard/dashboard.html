@@ -6,43 +6,126 @@
                 Filter<span class="text-red-500">*</span>
             </label>
 
-            <div class="flex flex-col w-full max-w-xs">
-                <p-datepicker
-                    formControlName="selectedDate"
-                    selectionMode="range"
-                    [readonlyInput]="true"
-                    inputId="selectedDate"
-                ></p-datepicker>
+            <div class="flex flex-col">
+                <p-datepicker formControlName="selectedDate" selectionMode="range" [readonlyInput]="true"
+                    inputId="selectedDate" dateFormat="yy-mm-dd"></p-datepicker>
 
                 @if (dashboardForm.controls['selectedDate']?.invalid) {
                 <p-message severity="error" size="small" variant="simple"> Date is required. </p-message>
                 }
             </div>
-
-            <button pButton type="submit" label="Refresh" class="p-button-text" ></button>
-        </div>
-
-        <!-- <div class="ml-auto">
-            <button pButton severity="secondary" type="submit" class="px-4">
-                <span pButtonLabel>Submit</span>
+            <button pButton type="submit" label="Refresh" icon="pi pi-refresh" [loading]="loading"
+                class="p-button-primary">
             </button>
-        </div> -->
+        </div>
     </div>
 </form>
 <div class="grid grid-cols-4 gap-8 pb-4">
-    <app-statistic-widget label="Total Uploaded" [value]="dashboardData.totalUpload || 0" icon="pi pi-upload" color="blue" />
-    <app-statistic-widget label="Total Downloaded" [value]="dashboardData.totalDownload || 0" icon="pi pi-download" color="red" />
-    <app-statistic-widget label="Total Completed" [value]="dashboardData.totalComplete || 0" icon="pi pi-check-circle" color="green" />
-    <app-statistic-widget label="Total Pending Upload" [value]="dashboardData.totalPending || 0" icon="pi pi-stop" color="green" />
+    <app-statistic-widget label="Total Uploaded" [value]="dashboardData.totalUpload || 0" icon="pi pi-upload"
+        color="blue" />
+    <app-statistic-widget label="Total Downloaded" [value]="dashboardData.totalDownload || 0" icon="pi pi-download"
+        color="red" />
+    <app-statistic-widget label="Total Completed" [value]="dashboardData.totalComplete || 0" icon="pi pi-check-circle"
+        color="green" />
+    <app-statistic-widget label="Total Pending Upload" [value]="dashboardData.totalPending || 0" icon="pi pi-stop"
+        color="green" />
 </div>
 <div class="grid grid-cols-2 gap-8">
-    <app-table-universal
-        [data]="dashboardData.fileList"
-        [dataKey]="'keyId'"
-        [columns]="columns"
-        [mainTableButtons]="mainButtonList"
-        [rowTableButtons]="actionButtonList"
-        [reloadTrigger]="reloadTableData"
-    />
-    <app-dashboard-chart [type]="dashboardData.detail.length > 1 ? 'bar' : 'pie'" [data]="chartData" />    
+    <app-table-universal [data]="dashboardData.fileList" [dataKey]="'keyId'" [columns]="columns"
+        [rowTableButtons]="actionButtonList" [reloadTrigger]="reloadTableData"
+        (rowTableButtonClick)="onRowTableButtonClick($event)" />
+    <app-dashboard-chart [type]="dashboardData.detail.length > 1 ? 'bar' : 'pie'" [data]="chartData" />
 </div>
+
+<!-- Auto-refresh status panel -->
+<!-- @if (autoRefreshEnabled) {
+<div class="auto-refresh-panel">
+    <div class="refresh-status-card">
+        <div class="refresh-header">
+            <div class="refresh-title">
+                <i class="pi pi-clock" style="margin-right: 0.5rem; color: #4caf50;"></i>
+                <span>Auto-refresh Active</span>
+                <span class="refresh-badge">Every {{ autoRefreshInterval / 1000 }}s</span>
+            </div>
+            <button pButton type="button" label="Stop" icon="pi pi-stop-circle" (click)="toggleAutoRefresh()"
+                class="p-button-sm p-button-danger p-button-outlined">
+            </button>
+        </div>
+
+        <div class="refresh-details">
+            <div class="refresh-timers">
+                <div class="timer-item">
+                    <span class="timer-label">Last refresh:</span>
+                    <span class="timer-value">{{ getLastRefreshTime() }}</span>
+                </div>
+                <div class="timer-item">
+                    <span class="timer-label">Next refresh:</span>
+                    <span class="timer-value">{{ getNextRefreshTime() }}</span>
+                </div>
+                <div class="timer-item">
+                    <span class="timer-label">Refreshing in:</span>
+                    <span class="countdown-display">
+                        {{ refreshCountdown }}
+                        <small>seconds</small>
+                    </span>
+                </div>
+            </div>
+
+            <div class="interval-controls">
+                <small>Change interval:</small>
+                <div class="interval-buttons">
+                    <button pButton type="button" label="30s" (click)="setRefreshInterval(30)" class="p-button-sm"
+                        [ngClass]="autoRefreshInterval === 30000 ? 'p-button-primary' : 'p-button-outlined'">
+                    </button>
+                    <button pButton type="button" label="1m" (click)="setRefreshInterval(60)" class="p-button-sm"
+                        [ngClass]="autoRefreshInterval === 60000 ? 'p-button-primary' : 'p-button-outlined'">
+                    </button>
+                    <button pButton type="button" label="5m" (click)="setRefreshInterval(300)" class="p-button-sm"
+                        [ngClass]="autoRefreshInterval === 300000 ? 'p-button-primary' : 'p-button-outlined'">
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="refresh-hint" *ngIf="dashboardForm.dirty">
+            <i class="pi pi-info-circle" style="margin-right: 0.5rem;"></i>
+            <small>Date range changed. Click "Refresh" to apply changes and reset auto-refresh timer.</small>
+        </div>
+    </div>
+</div>
+} -->
+
+<!-- Manual refresh panel for when auto-refresh is disabled -->
+<!-- @if (!autoRefreshEnabled) {
+<div class="manual-refresh-panel" style="margin-bottom: 1rem;">
+    <div class="refresh-status-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center;">
+                <i class="pi pi-clock" style="margin-right: 0.5rem; color: #666;"></i>
+                <span>Auto-refresh is disabled</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button pButton type="button" label="Enable Auto-refresh" icon="pi pi-play-circle"
+                    (click)="toggleAutoRefresh()" class="p-button-sm p-button-success">
+                </button>
+                <button pButton type="button" label="Refresh Now" icon="pi pi-refresh" (click)="onManualRefresh()"
+                    [loading]="loading" class="p-button-sm p-button-outlined">
+                </button>
+            </div>
+        </div>
+        <div style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">
+            <small>Last refresh: {{ getLastRefreshTime() }}</small>
+        </div>
+    </div>
+</div>
+} -->
+
+<!-- Loading indicator -->
+<!-- @if (loading) {
+<div class="refreshing-indicator">
+    <div class="loading-content">
+        <i class="pi pi-spin pi-spinner" style="margin-right: 0.5rem;"></i>
+        <span>Refreshing dashboard data...</span>
+    </div>
+</div>
+} -->

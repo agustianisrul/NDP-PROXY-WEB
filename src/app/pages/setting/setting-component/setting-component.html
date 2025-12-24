@@ -1,0 +1,35 @@
+<div class="w-full flex bg-white py-3 px-5 items-center rounded shadow mb-3">
+    <p-breadcrumb [model]="breaditems" [home]="home" />
+</div>
+<div class="card">
+    @for (row of model.configList; track $index) {
+    <form [formGroup]="settingForm" class="space-y-4">
+        <!-- Dynamic form controls for each config -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <div class="flex flex-col">
+                <label class="mb-2 font-semibold text-gray-700">{{ row.keyName }} <span class="text-red-500">*</span></label>
+                @if (row.componentType === 'p-toggleswitch') {
+                    <p-toggleswitch name="{{ row.keyName }}" formControlName="{{ row.keyName }}" [invalid]="isInvalid(row.keyName)" />
+                } @else if (row.componentType === 'p-inputnumber') {
+                    <p-inputnumber inputId="{{ row.keyName }}" formControlName="{{ row.keyName }}" [invalid]="isInvalid(row.keyName)"/>
+                } @else {
+                    <input pInputText formControlName="{{ row.keyName }}" [id]="row.keyName" [invalid]="isInvalid(row.keyName)" />
+                }
+                <small class="text-gray-500 mt-1">{{ row.description }}</small>
+                @if (settingForm.controls[row.keyName]?.invalid && (settingForm.controls[row.keyName]?.touched || settingForm.controls[row.keyName]?.dirty)) {
+                    <div class="text-sm text-red-500 mt-1">
+                        @if (settingForm.controls[row.keyName].errors?.['required']) {
+                        <ng-container> {{ row.keyName }} is required. </ng-container>
+                        }
+                    </div>
+                    }
+            </div>
+        </div>
+    </form>
+    }
+
+    <!-- Action buttons -->
+    <div class="flex justify-end gap-2 mt-6">
+        <button *appOnlyBrowser pButton type="button" label="Save" (click)="onSaveConfig()" severity="success"></button>
+    </div>
+</div>

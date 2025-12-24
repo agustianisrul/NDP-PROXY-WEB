@@ -25,9 +25,21 @@ export class HouseKeepingController {
     }
 
     static async deleteHouseKeeping(req: Request, res: Response) {
-        const userInfo: UserSession = (req.session as any).user;
-        const requestBody: any = req.body;
-        const endpointTarget = `/ndp/proxy/maintenance/deletebyid/${requestBody.idHouseKeeping}`;
-        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'DELETE'));
+        try {
+            const userInfo: UserSession = (req.session as any).user;
+            const requestBody = req.body;
+            if (Array.isArray(requestBody)) {
+                for (const detail of requestBody) {
+                    const endpointTarget = `/ndp/proxy/maintenance/deletebyid/${detail.idHouseKeeping}`;
+                    await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'DELETE')
+                }
+            } else {
+                const endpointTarget = `/ndp/proxy/maintenance/deletebyid/${requestBody.idHouseKeeping}`;
+                await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'DELETE')
+            }
+            ResponseHelper.success(res);
+        } catch (error) {
+            ResponseHelper.error(res, error);
+        }
     }
 }

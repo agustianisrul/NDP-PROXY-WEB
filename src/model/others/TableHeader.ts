@@ -1,4 +1,5 @@
 import { OptionsParameter } from './OptionsParameter';
+import { PermissionMode } from './TableButton';
 
 export interface TableHeader {
     key: string;
@@ -8,9 +9,7 @@ export interface TableHeader {
     align?: 'left' | 'right' | 'center'; // default is left
     labelUsingIcon?: boolean; // is value using icon special for icon in menu
     dateFormat?: string; // for date/boolean/string formatting
-    // values?: Record<string | number, string>; // for enum conversion
-    // options?: { id: string | number; label: string }[]; // array of objects for lookup
-    displayAt?: 'table' | 'detail' | 'none';
+    displayAt?: 'table' | 'none' | PermissionMode[]; // where to display the column
     optionsParameter?: OptionsParameter;
     validators?: {
         required?: boolean;
@@ -29,5 +28,6 @@ export interface TableHeader {
         | 'textarea'
         | 'p-togglebutton'
         | 'p-toggleswitch'
-        | 'tree-menu-picker';
+        | 'tree-menu-picker'
+        | 'p-label';
 }

@@ -1,0 +1,93 @@
+
+    <!-- ================= View/Delete Mode ================= -->
+    @if (mode === 'view' || mode === 'delete' || mode === 'start' || mode === 'stop') {
+    <div class="flex flex-col gap-2 w-full">
+        @for (header of headers; track header.key) { @if (isDisplayInForm(header)) {
+        <div class="flex flex-col md:flex-row items-start md:items-center w-full gap-3">
+            <div class="w-full md:w-56 font-semibold text-gray-700">
+                <label [for]="header.key">{{ header.label }}</label>
+            </div>
+            <div class="w-full md:w-56 text-gray-900">
+                @if (header.componentType === 'tree-menu-picker') {
+                    <p-tree
+                        [value]="model[header.key]"
+                        class="flex-1 border border-surface rounded-lg w-full md:w-[25rem]"
+                        scrollHeight="250px"
+                    >
+                        <ng-template #empty> Drag Nodes Here </ng-template>
+                    </p-tree>
+                }
+
+                @else {
+                    <span>{{ getDisplayValue(header) }}</span>
+                }
+            </div>
+        </div>
+        }}
+    </div>
+    }
+
+    <!-- ================= Create/Edit Mode ================= -->
+    @if (mode === 'create' || mode === 'edit') {
+    <form [formGroup]="groupForm" class="p-fluid space-y-4">
+        @for (header of headers; track header.key) { @if (isDisplayInForm(header)) {
+        <ng-container>
+            <div class="flex flex-col md:flex-row items-start md:items-center w-full">
+                <div class="w-full md:w-56 font-semibold text-gray-700">
+                    <label [for]="header.key">
+                        {{ header.label }}
+                        @if (header.validators?.required) {
+                        <span class="text-red-500">*</span>
+                        }
+                    </label>
+                </div>
+
+                <div class="w-full md:w-56 text-gray-900">
+                    <!-- NUMBER -->
+                    @if (header.componentType === 'p-inputnumber') {
+                    <input type="number" pInputText formControlName="{{ header.key }}" [id]="header.key" />
+                    }
+
+                    <!-- custom tree menu picker -->
+                    @else if (header.componentType === 'tree-menu-picker') {
+                        <app-tree-menu-picker [menuRoleList]="availableTreeMenus" [treeMenuList]="treeMenuList"
+                        (treeMenuListChange)="onTreeSelectionChange($event)"
+                        />
+                    }
+
+                    @else {
+                    <input pInputText formControlName="{{ header.key }}" [id]="header.key" />
+                    }
+                    
+                    @if (groupForm.controls[header.key]?.invalid && (groupForm.controls[header.key]?.touched || groupForm.controls[header.key]?.dirty)) {
+                    <div class="text-sm text-red-500 mt-1">
+                        @if (groupForm.controls[header.key].errors?.['required']) {
+                        <ng-container> {{ header.label }} is required. </ng-container>
+                        } @if (groupForm.controls[header.key].errors?.['email']) {
+                        <ng-container> Invalid email address. </ng-container>
+                        } @if (groupForm.controls[header.key].errors?.['passwordPolicy']) {
+                        <ng-container>
+                            <ul class="list-disc list-inside">
+                                @for (error of passwordErrors; track $index) {
+                                <li>{{ error }}</li>
+                                }
+                            </ul>
+                        </ng-container>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </ng-container>
+        } }
+    </form>
+    }
+
+    <div class="flex justify-end gap-2 mt-6">
+        <button pButton type="button" label="Cancel" class="p-button-text" (click)="onCancel()"></button>
+        @if (mode === 'create' || mode === 'edit') {
+        <button pButton type="button" label="Save" (click)="onSave()"></button>
+        } @if (mode === 'delete') {
+        <button pButton type="button" label="Confirm Delete" class="p-button-danger" (click)="onSave()"></button>
+        }
+    </div>

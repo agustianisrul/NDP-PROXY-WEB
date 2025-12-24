@@ -25,8 +25,8 @@
 
             <!-- Buttons -->
             <div class="flex items-center justify-center gap-3 mt-6">
-                <p-button label="Submit" (onClick)="onAccept()" styleClass="w-32"></p-button>
-                <p-button label="Cancel" [outlined]="true" (onClick)="onReject()" styleClass="w-32"></p-button>
+                <p-button *appOnlyBrowser label="Submit" (onClick)="onAccept()" styleClass="w-32"></p-button>
+                <p-button *appOnlyBrowser label="Cancel" [outlined]="true" (onClick)="onReject()" styleClass="w-32"></p-button>
             </div>
         </div>
     </ng-template>

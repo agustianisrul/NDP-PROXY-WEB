@@ -4,14 +4,21 @@
             <i class="pi pi-bars"></i>
         </button>
         <a class="layout-topbar-logo" routerLink="/dashboard">
-            <img src="./logoweb.png" alt="Indonesia Stock Exchange Bursa Efek Indonesia" class="max-w-full h-20 object-contain mb-2" />
+            <img src="./logoweb.png" alt="Indonesia Stock Exchange Bursa Efek Indonesia" class="max-w-full h-16 object-contain mb-2" />
             <span>NDP Proxy</span>
         </a>
     </div>
     <div class="layout-topbar-actions">
         <div class="layout-topbar-menu hidden lg:block">
             <div class="layout-topbar-menu-content">
-                <span class="text-gray-600">Hello, {{ currentUser?.fullname }}</span>
+                <span class="text-gray-600 user-info">Hello, {{ currentUser?.fullname }}</span>
+                <span class="text-gray-600 user-info">Environment {{ currentUser?.envi_user === 'prod' ? 'Production' : 'Non Production' }}</span>
+                @if (lastSuccessLogin) {
+                <span class="text-gray-600 user-info">Last Success Login {{ lastSuccessLogin }}</span>
+                }
+                @if (lastFailedLogin) {
+                <span class="text-gray-600 user-info">Last Failed Login {{ lastFailedLogin }}</span>
+                }
             </div>
         </div>
     </div>

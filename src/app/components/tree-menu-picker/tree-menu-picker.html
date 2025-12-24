@@ -4,33 +4,36 @@
         <h3 class="font-semibold mb-2">Available Menus</h3>
         <p-tree
             [value]="availableTreeMenus"
-            class="flex-1 border border-surface rounded-lg"
+            class="flex-1 border border-surface rounded-lg w-full md:w-[25rem]"
             [draggableNodes]="true"
             [droppableNodes]="true"
-            [draggableScope]="['first', 'self']"
-            [droppableScope]="['second', 'self']"
-            selectionMode="single"
-            [filter]="true"
+            draggableScope="first" droppableScope="second"
             scrollHeight="250px"
         >
             <ng-template #empty> No Items Left </ng-template>
         </p-tree>
     </div>
 
-    <!-- RIGHT SIDE -->
+    <!-- 
+    RIGHT SIDE 
+            [draggableScope]="['first', 'self']"
+            [droppableScope]="['second', 'self']"
+            (onNodeDrop)="moveNodeToAvailable($event)"
+            (onNodeDrop)="moveNodeToSelected($event)"
+            (onNodeSelect)="onNodeSelect($event)"
+            selectionMode="single"
+            [draggableScope]="['second', 'self']"
+            [droppableScope]="['first', 'self']"
+     -->
     <div class="flex-1">
         <h3 class="font-semibold mb-2">Selected Menus</h3>
         <p-tree
             [value]="treeMenuList"
-            class="flex-1 border border-surface rounded-lg"
+            class="flex-1 border border-surface rounded-lg w-full md:w-[25rem]"
             [draggableNodes]="true"
             [droppableNodes]="true"
-            [draggableScope]="['second', 'self']"
-            [droppableScope]="['first', 'self']"
-            selectionMode="single"
-            [filter]="true"
             scrollHeight="250px"
-            (onNodeDrop)="onNodeDrop($event)"
+            draggableScope="second" droppableScope="first"
             (onNodeDoubleClick)="onNodeDoubleClick($event)"
         >
             <ng-template #empty> Drag Nodes Here </ng-template>

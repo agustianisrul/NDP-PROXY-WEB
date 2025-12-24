@@ -5,6 +5,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
+import { OnlyBrowserDirective } from '../../directives/only-browser.directive';
 import { TooltipModule } from 'primeng/tooltip';
 import { TableButton } from '../../../model/others/TableButton';
 import { TableHeader } from '../../../model/others/TableHeader';
@@ -13,11 +14,11 @@ import { RequestService } from '../../services/request-service';
 
 @Component({
     selector: 'app-table-universal',
-    imports: [TableModule, CommonModule, InputTextModule, IconFieldModule, InputIconModule, ButtonModule, TooltipModule],
+    imports: [TableModule, CommonModule, InputTextModule, IconFieldModule, InputIconModule, ButtonModule, TooltipModule, OnlyBrowserDirective],
     templateUrl: './table-universal.html',
     styleUrl: './table-universal.css',
 })
-export class TableUniversal<T> implements OnInit, OnChanges {
+export class TableUniversal<T> implements OnInit {
     @Input() url?: string;
     @Input() data?: T[] = [];
     @Input() columns: TableHeader[] = [];
@@ -32,6 +33,7 @@ export class TableUniversal<T> implements OnInit, OnChanges {
     @Output() selectedRowsChange = new EventEmitter<T[]>();
     @Output() mainTableButtonClick = new EventEmitter<TableButton>();
     @Output() rowTableButtonClick = new EventEmitter<{ type: string; row: T }>();
+    @Output() reloadComplete = new EventEmitter<void>();
 
     totalRecords = 0;
     first = 0;
@@ -46,7 +48,7 @@ export class TableUniversal<T> implements OnInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        if (changes['reloadTrigger'] && !changes['reloadTrigger'].firstChange) {
+        if (changes['reloadTrigger'] && !changes['reloadTrigger'].firstChange && !changes['reloadTrigger'].previousValue) {
             this.fetchData();
         }
     }
@@ -59,12 +61,11 @@ export class TableUniversal<T> implements OnInit, OnChanges {
                     this.data = res.data ?? [];
                     this.totalRecords = res.data.length;
                     this.loading = false;
-                    this.reloadTrigger = false;
+                    this.reloadComplete.emit(); 
                 },
                 error: () => {
-                    this.data = [];
                     this.loading = false;
-                    this.reloadTrigger = false;
+                    this.reloadComplete.emit(); 
                 },
             });
         }
@@ -108,7 +109,9 @@ export class TableUniversal<T> implements OnInit, OnChanges {
         }
 
         if (header.optionsParameter?.data && header.optionsParameter?.data.length > 0) {
-            return header.optionsParameter?.data.map((item) => item[header.optionsParameter?.keyLabel ?? cellValue]).join(', ');
+            const tempKeyCode = header.optionsParameter.keyCode || header.key;
+            const tempItem = header.optionsParameter?.data.find((item) => item[tempKeyCode] === cellValue || (item[tempKeyCode] == null && cellValue == null));
+            return tempItem ? tempItem[header.optionsParameter.keyLabel] : cellValue ?? '-';
         }
 
         return cellValue ?? '-';
@@ -121,6 +124,9 @@ export class TableUniversal<T> implements OnInit, OnChanges {
     }
 
     onMainTableButtonClick(btn: TableButton) {
+        if (['export', 'create'].includes(btn.type)) {
+            this.selectedRowsChange.emit(this.data);
+        }
         this.mainTableButtonClick.emit(btn);
     }
 

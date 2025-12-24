@@ -3,11 +3,12 @@ import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { LayoutService } from '../../services/layout-service';
 import { ParentComponent } from '../parent-component';
+import { CommonModule } from '@angular/common';
 
 @Component({
     standalone: true,
     selector: 'app-topheader',
-    imports: [ButtonModule, RouterModule],
+    imports: [ButtonModule, RouterModule, CommonModule],
     templateUrl: './topheader.html',
     styleUrl: './topheader.css',
 })

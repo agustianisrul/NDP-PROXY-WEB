@@ -1,15 +1,15 @@
-<p-dialog [(visible)]="visible" [modal]="true" [closable]="false" [style]="{ width: '50rem' }">
-    <ng-template pTemplate="header">
-        <h3>{{ title }}</h3>
-    </ng-template>
 
     <!-- ================= View/Delete Mode ================= -->
     @if (mode === 'view' || mode === 'delete' || mode === 'start' || mode === 'stop') {
-    <div class="flex flex-col gap-3 w-full p-4">
+    <div class="flex flex-col gap-2 w-full">
         @for (header of headers; track header.key) { @if (isDisplayInForm(header)) {
-        <div class="flex flex-col md:flex-row items-start md:items-center w-full">
-            <div class="w-full md:w-1/4 font-semibold text-gray-700">{{ header.label }}</div>
-            <div class="w-full md:w-3/4 text-gray-900">{{ getDisplayValue(header) }}</div>
+        <div class="flex flex-col md:flex-row items-start md:items-center w-full gap-3">
+            <div class="w-full md:w-56 font-semibold text-gray-700">
+                <label [for]="header.key">{{ header.label }}</label>
+            </div>
+            <div class="w-full md:w-56 text-gray-900">
+                <span>{{ getDisplayValue(header) }}</span>
+            </div>
         </div>
         }}
     </div>
@@ -21,7 +21,7 @@
         @for (header of headers; track header.key) { @if (isDisplayInForm(header)) {
         <ng-container>
             <div class="flex flex-col md:flex-row items-start md:items-center w-full">
-                <div class="w-full md:w-1/3 font-semibold text-gray-700">
+                <div class="w-full md:w-56 font-semibold text-gray-700">
                     <label [for]="header.key">
                         {{ header.label }}
                         @if (header.validators?.required) {
@@ -30,10 +30,14 @@
                     </label>
                 </div>
 
-                <div class="w-full md:w-2/3 text-gray-900">
+                <div class="w-full md:w-56 text-gray-900">
                     <!-- NUMBER -->
                     @if (header.componentType === 'p-inputnumber') {
                     <input type="number" pInputText formControlName="{{ header.key }}" [id]="header.key" />
+                    }
+
+                    @else if (mode === 'edit' && header.componentType === 'p-label') {
+                        <label>{{ getDisplayValue(header) }}</label>
                     }
 
                     <!-- BOOLEAN -->
@@ -104,11 +108,6 @@
                         display="chip"
                         [appendTo]="'body'"
                     ></p-multiselect>
-                    } 
-
-                    <!-- custom tree menu picker -->
-                    @else if (header.componentType === 'tree-menu-picker') {
-                        <app-tree-menu-picker/>
                     }
 
                     @else {
@@ -139,7 +138,7 @@
     </form>
     }
 
-    <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2 mt-6">
         <button pButton type="button" label="Cancel" class="p-button-text" (click)="onCancel()"></button>
         @if (mode === 'create' || mode === 'edit') {
         <button pButton type="button" label="Save" (click)="onSave()"></button>
@@ -150,5 +149,4 @@
         } @if (mode === 'stop') {
         <button pButton type="button" label="Stop" (click)="onSave()"></button>
         }
-    </ng-template>
-</p-dialog>
+    </div>

@@ -1,3 +1,6 @@
+<div class="w-full flex bg-white py-3 px-5 items-center rounded shadow mb-3">
+    <p-breadcrumb [model]="breaditems" [home]="home" />
+</div>
 <app-table-universal
     [url]="'/v2/user/list-user-group'"
     [dataKey]="'iduser'"
@@ -8,14 +11,6 @@
     (mainTableButtonClick)="onMainTableButtonClick($event)"
     (rowTableButtonClick)="onRowTableButtonClick($event)"
     [reloadTrigger]="reloadTableData"
-/>
-<app-dialog-detail
-    [(visible)]="dialogVisible"
-    [title]="currentMenuLabel"
-    [headers]="columns"
-    [model]="selectedRow"
-    [mode]="dialogMode"
-    [endpoint]="endpointUrl"
-    (saveClick)="handleSave()"
+    (reloadComplete)="onReloadComplete()"
 />
 <app-confirm-delete [selectedRows]="selectedRows" keyLabel="username"  />

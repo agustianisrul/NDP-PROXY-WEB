@@ -1,24 +1,8 @@
-<main class="pt-2 max-w-screen-xl mx-auto px-2 mb-6">
-    <div class="w-full flex bg-white py-3 px-5 items-center rounded shadow mb-3">
-        <p-breadcrumb [model]="breaditems" [home]="home" />
-    </div>
-    <app-table-universal
-        [url]="'/v2/prefix/list-prefix'"
-        [columns]="columns"
-        [mainTableButtons]="mainButtonList"
-        [rowTableButtons]="actionButtonList"
-        [(selectedRows)]="selectedRows"
-        (mainTableButtonClick)="onMainTableButtonClick($event)"
-        (rowTableButtonClick)="onRowTableButtonClick($event)"
-        [reloadTrigger]="reloadTableData"
-    />
-    <app-dialog-detail
-        [(visible)]="dialogVisible"
-        [title]="currentMenuLabel"
-        [headers]="columns"
-        [model]="selectedRow"
-        [mode]="dialogMode"
-        (saveClick)="handleSave()"
-    />
-</main>
-<app-confirm-delete [selectedRows]="selectedRows" keyLabel="prefixName"  />
+<div class="w-full flex bg-white py-3 px-5 items-center rounded shadow mb-3">
+    <p-breadcrumb [model]="breaditems" [home]="home" />
+</div>
+<app-table-universal [url]="'/v2/prefix/list-prefix'" [columns]="columns" [mainTableButtons]="mainButtonList"
+    [rowTableButtons]="actionButtonList" [(selectedRows)]="selectedRows"
+    (mainTableButtonClick)="onMainTableButtonClick($event)" (rowTableButtonClick)="onRowTableButtonClick($event)"
+    [reloadTrigger]="reloadTableData" (reloadComplete)="onReloadComplete()" />
+<app-confirm-delete [selectedRows]="selectedRows" keyLabel="prefixName" />

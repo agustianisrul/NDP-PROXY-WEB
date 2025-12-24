@@ -6,6 +6,6 @@
         "outDir": "./out-tsc/app",
         "types": ["node"]
     },
-    "include": ["src/**/*.ts", "auth.routes.ts"],
+    "include": ["src/**/*.ts", "src/backend/routes/auth.routes.ts"],
     "exclude": ["src/**/*.spec.ts", "src/**/*.d.ts"]
 }

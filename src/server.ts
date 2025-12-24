@@ -1,10 +1,10 @@
 import { AngularNodeAppEngine, createNodeRequestHandler, isMainModule, writeResponseToNodeResponse } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
-import authRouter from '../auth.routes';
 import { config } from './backend/config/environment';
 import sessionConfig from './backend/config/session';
 import auditMiddleware from './backend/middlewares/audit.trail';
+import authRouter from './backend/routes/auth.routes';
 import serverConfigRouter from './backend/routes/config.routes';
 import dashboardRouter from './backend/routes/dashboard.routes';
 import filePriorityRouter from './backend/routes/file.priority.routes';
@@ -12,6 +12,7 @@ import groupRouter from './backend/routes/group.routes';
 import houseKeepingRouter from './backend/routes/housekeeping.routes';
 import menuRouter from './backend/routes/menu.routes';
 import prefixRouter from './backend/routes/prefix.routes';
+import reportLoggingFileRouter from './backend/routes/report.logging.file.routes';
 import roleRouter from './backend/routes/role.routes';
 import schedulerRouter from './backend/routes/scheduler.routes';
 import userRouter from './backend/routes/user.routes';
@@ -23,7 +24,21 @@ const angularApp = new AngularNodeAppEngine();
 
 /******************** API SERVER *********************/
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(sessionConfig);
+
+/**
+ * Serve static files from /browser
+ */
+app.use(
+    express.static(browserDistFolder, {
+        maxAge: '1y',
+        index: false,
+        redirect: false,
+    })
+);
+
 app.use(auditMiddleware);
 app.use('/v2', [
     authRouter,
@@ -37,30 +52,8 @@ app.use('/v2', [
     serverConfigRouter,
     filePriorityRouter,
     houseKeepingRouter,
+    reportLoggingFileRouter
 ]);
-
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
-
-/**
- * Serve static files from /browser
- */
-app.use(
-    express.static(browserDistFolder, {
-        maxAge: '1y',
-        index: false,
-        redirect: false,
-    })
-);
 
 /**
  * Handle all other requests by rendering the Angular application.

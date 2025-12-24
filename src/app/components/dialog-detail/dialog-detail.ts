@@ -1,21 +1,24 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import { TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
+import { MenuRole } from '../../../model/custom-entity/MenuRole';
 import { PermissionMode } from '../../../model/others/TableButton';
 import { TableHeader } from '../../../model/others/TableHeader';
 import { DateService } from '../../services/date-service';
 import { RequestService } from '../../services/request-service';
 import { createPasswordValidator } from '../password-validation';
 import { TreeMenuPicker } from '../tree-menu-picker/tree-menu-picker';
-import { availableMenu, selectedTreeMenus, selectedTreeNode } from '../tree.store';
+import { ResponseCode } from '../../../backend/utils/responseCode';
 
 interface PasswordValidationResult {
     valid: boolean;
@@ -38,30 +41,35 @@ interface PasswordValidationResult {
         ButtonModule,
         MultiSelectModule,
         PasswordModule,
-        TreeMenuPicker,
     ],
 })
-export class DialogDetail implements OnChanges {
-    @Input() visible = false;
-    @Input() title = 'Form';
-    @Input() headers: TableHeader[] = [];
-    @Input() model: any = {};
-    @Input() mode: PermissionMode = 'view';
-    @Input() endpoint?: string;
-
-    @Output() visibleChange = new EventEmitter<boolean>();
-    @Output() saveClick = new EventEmitter<void>();
-    @Output() cancelClick = new EventEmitter<void>();
+export class DialogDetail implements OnInit {
+    visible = false;
+    title = 'Form';
+    headers: TableHeader[] = [];
+    model: any = {};
+    mode: PermissionMode = 'view';
+    endpoint?: string;
 
     form!: FormGroup;
     dataOptions = new Map<string, any[]>();
 
-    constructor(private readonly fb: FormBuilder, private readonly requestService: RequestService, private readonly dateService: DateService) {}
+    constructor(
+        private readonly formBuilder: FormBuilder,
+        private readonly requestService: RequestService,
+        private readonly dateService: DateService,
+        public dynamicDialogRef: DynamicDialogRef,
+        public dynamicDialogConfig: DynamicDialogConfig
+    ) {}
 
-    ngOnChanges(changes: SimpleChanges): void {
-        if (changes['headers'] || changes['model'] || changes['mode']) {
-            this.buildForm();
-        }
+    ngOnInit(): void {
+        this.model = this.dynamicDialogConfig.data.model;
+        this.headers = this.dynamicDialogConfig.data.headers;
+        this.visible = this.dynamicDialogConfig.data.visible;
+        this.mode = this.dynamicDialogConfig.data.mode;
+        this.endpoint = this.dynamicDialogConfig.data.endpoint;
+
+        this.buildForm();
     }
 
     private buildForm() {
@@ -70,8 +78,9 @@ export class DialogDetail implements OnChanges {
             const isPrimaryKeyId = header.key.toLowerCase().includes('id');
             if (this.isDisplayInForm(header) || isPrimaryKeyId) {
                 const validators: ValidatorFn[] = header.validators ? this.buildAllValidator(header) : [];
-                group[header.key] = [this.model?.[header.key] ?? null, validators];
-                this.form = this.fb.group(group);
+                const tempValue = this.mode !== 'create' ? this.model?.[header.key] : null;
+                group[header.key] = [tempValue, validators];
+                this.form = this.formBuilder.group(group);
 
                 if (header.componentType && ['p-multiselect', 'p-select', 'tree-menu-picker'].includes(header.componentType)) {
                     this.fetchDataOptions(header);
@@ -119,12 +128,7 @@ export class DialogDetail implements OnChanges {
             this.requestService.getBackend(optionsConfig.url).subscribe({
                 next: (res: any) => {
                     this.dataOptions.set(header.key, res.data || []);
-                    if (header.componentType === 'tree-menu-picker') {
-                        availableMenu.set(res.data);
-                        selectedTreeNode.set(this.model?.[header.key] ?? []);
-                    }
-                },
-                error: (err) => console.error(`Failed to load options for ${header.key}`, err),
+                }
             });
         }
     }
@@ -137,37 +141,26 @@ export class DialogDetail implements OnChanges {
 
     onSave() {
         if (this.form.invalid) {
-            console.log('form invalid');
             this.form.markAllAsTouched();
             return;
         }
         const payloadBody = this.form.value;
-        const headerTreeMenu = this.headers.find((item: TableHeader) => item.componentType === 'tree-menu-picker');
-        if (headerTreeMenu) {
-            payloadBody[headerTreeMenu.key] = selectedTreeMenus();
-        }
         if (this.endpoint) {
             this.requestService.postBackend(this.endpoint, payloadBody).subscribe({
-                next: () => {
-                    this.saveClick.emit();
-                    this.visibleChange.emit(false);
-                    this.form.reset();
-                },
-                error: (err) => {
-                    this.form.reset();
-                },
+                next: (res: any) => {
+                    if (res.code === ResponseCode.SUCCESS) {
+                        this.form.reset();
+                        this.requestService.displayMessageService('info', 'Information', `Data ${this.mode} successfully.`);
+                        this.dynamicDialogRef.close(res);
+                    }
+                }
             });
-        } else {
-            this.saveClick.emit();
-            this.visibleChange.emit(false);
-            this.form.reset();
         }
     }
 
     onCancel() {
-        this.cancelClick.emit();
-        this.visibleChange.emit(false);
         this.form.reset();
+        this.dynamicDialogRef.close();
     }
 
     private getNestedValue(obj: any, path: string): any {
@@ -176,14 +169,18 @@ export class DialogDetail implements OnChanges {
     }
 
     getDisplayValue(header: TableHeader): any {
-        const cellValue = this.model[header.key];
+        // const cellValue = this.model[header.key];
+        const cellValue = header.key.includes('.') ? this.getNestedValue(this.model, header.key) : this.model[header.key];
 
         if (header.dateFormat) {
             return cellValue ? this.dateService.format(cellValue, header.dateFormat) : this.dateService.format(cellValue);
         }
 
         if (header.optionsParameter?.data && header.optionsParameter?.data.length > 0) {
-            return header.optionsParameter?.data.map((item) => item[header.optionsParameter?.keyLabel ?? cellValue]).join(', ');
+            const tempDataOptions = header.optionsParameter?.data || this.dataOptions.get(header.key) || [];
+            const tempKeyCode = header.optionsParameter.keyCode || header.key;
+            const tempItem = tempDataOptions.find((item) => item[tempKeyCode] === cellValue || (item[tempKeyCode] == null && cellValue == null));
+            return tempItem ? tempItem[header.optionsParameter.keyLabel] : cellValue ?? '-';
         }
 
         return cellValue ?? '-';
@@ -191,6 +188,10 @@ export class DialogDetail implements OnChanges {
 
     isDisplayInForm(column: TableHeader): boolean {
         if (!column.displayAt) return true;
-        return 'detail' === column.displayAt;
+        return column.displayAt.includes(this.mode);
+    }
+
+    closeDialog() {
+        this.dynamicDialogRef.close();
     }
 }

@@ -18,7 +18,7 @@
         <div class="flex items-center justify-between w-full gap-2">
             <div class="flex gap-2">
                 @for (btn of mainTableButtons; track btn.type) {
-                <button
+                <button *appOnlyBrowser
                     pButton
                     type="button"
                     [label]="btn.label"
@@ -95,7 +95,7 @@
             <td style="text-align: center">
                 <div class="flex justify-center gap-2">
                     @for (btn of rowTableButtons; track btn.icon) {
-                    <button
+                    <button *appOnlyBrowser
                         pButton
                         type="button"
                         [icon]="btn.icon ?? ''"
@@ -109,6 +109,11 @@
                 </div>
             </td>
             }
+        </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+        <tr>
+            <td colspan="5">No data found.</td>
         </tr>
     </ng-template>
 </p-table>

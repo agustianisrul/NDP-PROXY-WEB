@@ -3,5 +3,5 @@ export interface MenuDetail {
     nameMenu: string;
     pathMenu: string | null;
     iconMenu: string;
-    deleteable: boolean;
+    deleted: boolean;
 }

@@ -1,0 +1,88 @@
+@if (mode === 'view' || mode === 'delete' || mode === 'start' || mode === 'stop') {
+<div class="flex flex-col gap-2 w-full">
+    @for (row of model.configList; track $index) {
+    <div class="flex flex-col md:flex-row items-start md:items-center w-full gap-3"> <!-- Added gap-3 here -->
+        <div class="w-full md:w-56 font-semibold text-gray-700">
+            <label [for]="row.keyName">{{ row.keyName }}</label>
+        </div>
+        <div class="w-full md:w-56 text-gray-900">
+            <span>{{row.value}}</span>
+        </div>
+        <div class="w-full md:w-56 text-gray-900">
+            <span>{{row.description}}</span>
+        </div>
+    </div>
+    }
+</div>
+}
+
+@if (mode === 'create' || mode === 'edit') {
+<form [formGroup]="configForm" class="p-fluid space-y-4">
+    @if (mode === 'create') {
+    <ng-container>
+        <div class="flex flex-col md:flex-row items-start md:items-center w-full">
+            <div class="w-full md:w-56 font-semibold text-gray-700">
+                <label for="typeForm">Form Type
+                    <span class="text-red-500">*</span>
+                </label>
+            </div>
+            <div class="w-full md:w-56 text-gray-900">
+                <!-- <input pInputText formControlName="typeForm" id="typeForm" /> -->
+                <p-select formControlName="typeForm" [options]="configList" [invalid]="isInvalid('typeForm')" optionLabel="paramName" (onChange)="onSelectFormType($event)" />
+                @if (isInvalid('typeForm')) {
+                    <p-message severity="error" size="small" variant="simple">Form Type is required.</p-message>
+                }
+            </div>
+        </div>
+        <div class="flex flex-col md:flex-row items-start md:items-center w-full">
+            <div class="w-full md:w-56 font-semibold text-gray-700">
+                <label for="keyGroup">Key Group
+                    <span class="text-red-500">*</span>
+                </label>
+            </div>
+            <div class="w-full md:w-56 text-gray-900">
+                <input pInputText formControlName="keyGroup" id="keyGroup" />
+            </div>
+        </div>
+    </ng-container>
+    }
+    @for (row of model.configList; track $index) {
+    <ng-container>
+        <div class="flex flex-col md:flex-row items-start md:items-center w-full">
+            <div class="w-full md:w-56 font-semibold text-gray-700">
+                <label [for]="row.keyName">{{ row.keyName }}
+                    <span class="text-red-500">*</span>
+                </label>
+            </div>
+            <div class="w-full md:w-56 text-gray-900">
+                @if (row.componentType === 'p-toggleswitch') {
+                    <p-toggleswitch name="{{ row.keyName }}" formControlName="{{ row.keyName }}" [invalid]="isInvalid(row.keyName)" />
+                } @else if (row.componentType === 'p-inputnumber') {
+                    <p-inputnumber inputId="{{ row.keyName }}" formControlName="{{ row.keyName }}" [invalid]="isInvalid(row.keyName)"/>
+                } @else {
+                    <input pInputText formControlName="{{ row.keyName }}" [id]="row.keyName" [invalid]="isInvalid(row.keyName)" />
+                }
+                @if (isInvalid(row.keyName)) {
+                    <p-message severity="error" size="small" variant="simple">{{row.keyName}} is required.</p-message>
+                }
+            </div>
+            <div class="w-full md:w-56 font-semibold text-gray-700">
+                <label [for]="`${row.keyName}_description`">Description</label>
+            </div>
+            <div class="w-full md:w-56 text-gray-900">
+                <input pInputText formControlName="{{ `${row.keyName}_description` }}" [id]="`${row.keyName}_description`" />
+            </div>
+        </div>
+    </ng-container>
+    }
+</form>
+}
+
+<div class="flex justify-end gap-2 mt-6">
+    <button pButton type="button" label="Cancel" class="p-button-text" (click)="onCancel()"></button>
+    @if (mode === 'create' || mode === 'edit') {
+    <button pButton type="button" label="Save" (click)="onSave()"></button>
+    } @if (mode === 'delete') {
+    <button pButton type="button" label="Confirm Delete" class="p-button-danger" (click)="onSave()"></button>
+    }
+</div>

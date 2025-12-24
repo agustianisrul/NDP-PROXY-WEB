@@ -2417,7 +2417,7 @@ img {
 }
 
 .layout-topbar {
-    position: fixed;
+    /* position: fixed;
     height: 6rem;
     z-index: 997;
     left: 0;
@@ -2427,11 +2427,27 @@ img {
     background-color: var(--surface-card);
     transition: left var(--layout-section-transition-duration);
     display: flex;
+    align-items: center; */
+    position: fixed;
+    height: 6rem;
+    z-index: 997;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0 2rem;
+    background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 0, 0, 0.3) 25%, 
+                #FF0000 50%, 
+                rgba(255, 0, 0, 0.3) 75%, 
+                transparent 100%);
+    transition: left var(--layout-section-transition-duration);
+    display: flex;
     align-items: center;
 }
 
 .layout-topbar .layout-topbar-logo-container {
-    width: 20rem;
+    width: 25rem;
     display: flex;
     align-items: center;
 }
@@ -2516,7 +2532,18 @@ img {
 .layout-topbar .layout-topbar-menu-content,
 .layout-topbar .layout-config-menu {
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
+    /* gap: 1rem; */
+    justify-content: center;
+    align-items: right;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    text-align: center;
 }
 
 @media (max-width: 991px) {
@@ -2589,7 +2616,12 @@ img {
     top: 7rem;
     left: 2rem;
     transition: transform var(--layout-section-transition-duration), left var(--layout-section-transition-duration);
-    background-color: var(--surface-overlay);
+    background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(214, 220, 229, 0.3) 25%, 
+                rgba(214, 220, 229, 0.6) 50%, 
+                rgba(214, 220, 229, 0.8) 75%, 
+                #D6DCE5 100%);
     border-radius: var(--content-border-radius);
     padding: 0.5rem 1.5rem;
 }
@@ -2786,24 +2818,49 @@ img {
     }
 
     .layout-wrapper .layout-sidebar {
-        transform: translate(-100%);
+        /* transform: translate(-100%);
         left: 0;
         top: 0;
         height: 100vh;
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
+        transition: transform 0.4s cubic-bezier(0.05, 0.74, 0.2, 0.99), left 0.4s cubic-bezier(0.05, 0.74, 0.2, 0.99); */
+
+        transform: translate(-100%);
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 85vw; /* Reduced width for mobile modal feel */
+        max-width: 320px; /* Max width for better mobile UX */
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
         transition: transform 0.4s cubic-bezier(0.05, 0.74, 0.2, 0.99), left 0.4s cubic-bezier(0.05, 0.74, 0.2, 0.99);
+        background: #D6DCE5; /* Solid background for modal */
+        box-shadow: 0 3px 5px rgba(0,0,0,0.05), 0 0 2px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.14);
+        z-index: 1000; /* Higher than mask */
+        border-right: 1px solid var(--surface-border);
     }
 
     .layout-wrapper .layout-mask {
-        display: none;
+        /* display: none;
         position: fixed;
         top: 0;
         left: 0;
         z-index: 998;
         width: 100%;
         height: 100%;
+        background-color: var(--maskbg); */
+
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 999; /* Higher than content but lower than sidebar */
+        width: 100%;
+        height: 100%;
         background-color: var(--maskbg);
+        backdrop-filter: blur(4px); /* Add blur effect to backdrop */
+        -webkit-backdrop-filter: blur(4px); /* Safari support */
     }
 
     .layout-wrapper.layout-mobile-active .layout-sidebar {
@@ -2812,6 +2869,12 @@ img {
 
     .layout-wrapper.layout-mobile-active .layout-mask {
         display: block;
+    }
+    
+    /* Optional: Add blur to main content when sidebar is open */
+    .layout-wrapper.layout-mobile-active .layout-main-container {
+        filter: blur(2px);
+        pointer-events: none; /* Prevent interaction with blurred content */
     }
 }
 

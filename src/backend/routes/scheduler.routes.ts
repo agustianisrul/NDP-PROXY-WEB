@@ -10,7 +10,7 @@ schedulerRouter.get('/scheduler/:id', asyncHandler(authBearerMiddleware), asyncH
 schedulerRouter.post('/scheduler/add-scheduler', asyncHandler(authBearerMiddleware), asyncHandler(SchedulerController.postScheduler));
 schedulerRouter.post('/scheduler/edit-scheduler', asyncHandler(authBearerMiddleware), asyncHandler(SchedulerController.putScheduler));
 schedulerRouter.post('/scheduler/delete-scheduler', asyncHandler(authBearerMiddleware), asyncHandler(SchedulerController.deleteScheduler));
-schedulerRouter.get('/scheduler/start-scheduler', asyncHandler(authBearerMiddleware), asyncHandler(SchedulerController.startScheduler));
-schedulerRouter.get('/scheduler/stop-scheduler', asyncHandler(authBearerMiddleware), asyncHandler(SchedulerController.stopScheduler));
+schedulerRouter.post('/scheduler/start-scheduler', asyncHandler(authBearerMiddleware), asyncHandler(SchedulerController.startScheduler));
+schedulerRouter.post('/scheduler/stop-scheduler', asyncHandler(authBearerMiddleware), asyncHandler(SchedulerController.stopScheduler));
 
 export default schedulerRouter;

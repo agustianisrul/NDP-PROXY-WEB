@@ -1,8 +1,10 @@
 import { Directive, inject, OnInit } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 import { PermissionMode, TableButton } from '../../model/others/TableButton';
 import { TableHeader } from '../../model/others/TableHeader';
 import { RequestService } from '../services/request-service';
+import { DialogDetail } from './dialog-detail/dialog-detail';
 import { ParentComponent } from './parent-component';
 
 @Directive({
@@ -10,8 +12,9 @@ import { ParentComponent } from './parent-component';
 })
 export abstract class ParentTable<T> extends ParentComponent implements OnInit {
     // global service
-    private readonly confirmationService = inject(ConfirmationService);
-    private readonly requestService = inject(RequestService);
+    protected readonly confirmationService = inject(ConfirmationService);
+    protected readonly requestService = inject(RequestService);
+    protected readonly dialogService = inject(DialogService);
     // for table attribute
     protected columns!: TableHeader[];
     protected mainButtonList: TableButton[] = [];
@@ -27,7 +30,7 @@ export abstract class ParentTable<T> extends ParentComponent implements OnInit {
     // global attribute
     protected endpointList = new Map<string, string>();
 
-    override ngOnInit(): void {
+    ngOnInit(): void {
         this.actionButtonList = [{ label: 'View', icon: 'pi pi-eye', severity: 'primary', type: 'view' }];
 
         if (this.hasRole('CREATE')) {
@@ -57,6 +60,7 @@ export abstract class ParentTable<T> extends ParentComponent implements OnInit {
         if (btn.type === 'create') {
             this.dialogVisible = true;
             this.dialogMode = btn.type;
+            this.openDialogModal(btn.type);
             return;
         }
         if (this.selectedRows.length > 0) {
@@ -65,11 +69,43 @@ export abstract class ParentTable<T> extends ParentComponent implements OnInit {
                 message: 'Please confirm to proceed.',
                 accept: () => {
                     this.requestService.postBackend(this.endpointUrl, this.selectedRows).subscribe({
-                        next: () => {},
+                        next: async () => {
+                            await this.delay(500);
+                            this.reloadTableData = true;
+                        }
                     });
                 },
             });
         }
+    }
+
+    openDialogModal(mode: PermissionMode): void {
+        const tempMode = mode.charAt(0).toUpperCase() + mode.slice(1).toLowerCase();
+        const dialogRef = this.dialogService.open(DialogDetail, {
+            header: `${tempMode} ${this.currentMenuLabel}`,
+            data: {
+                visible: true,
+                headers: this.columns,
+                model: this.selectedRow,
+                mode: mode,
+                endpoint: this.endpointList.get(mode) || '',
+            },
+            contentStyle: { overflow: 'auto' },
+            baseZIndex: 10000,
+            dismissableMask: true,
+            closeOnEscape: true,
+            modal: true,
+        });
+
+        // Handle dialog close if needed
+        dialogRef?.onClose.subscribe(async () => {
+            await this.delay(500);
+            this.reloadTableData = true;
+        });
+    }
+
+    protected delay(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     onRowTableButtonClick(event: any) {
@@ -77,9 +113,10 @@ export abstract class ParentTable<T> extends ParentComponent implements OnInit {
         this.dialogMode = event.type;
         this.selectedRow = event.row;
         this.endpointUrl = this.endpointList.get(event.type) || '';
+        this.openDialogModal(event.type);
     }
 
-    protected handleSave() {
-        this.reloadTableData = true;
+    protected onReloadComplete() {
+        this.reloadTableData = false;
     }
 }

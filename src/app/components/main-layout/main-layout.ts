@@ -3,11 +3,8 @@ import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, Renderer2, ViewChild
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { filter, Subscription } from 'rxjs';
-import { UserSession } from '../../../model/custom-entity/UserSession';
-import { RouterItem } from '../../../model/others/RouterItem';
 import { AuthenticationService } from '../../services/authentication-service';
 import { LayoutService } from '../../services/layout-service';
-import { RequestService } from '../../services/request-service';
 import { LoadingPanel } from '../loading-panel/loading-panel';
 import { Sidebar } from '../sidebar/sidebar';
 import { Topheader } from '../topheader/topheader';
@@ -33,7 +30,6 @@ export class MainLayout implements OnInit, OnDestroy {
         private readonly renderer: Renderer2,
         private readonly router: Router,
         public readonly authService: AuthenticationService,
-        private readonly requestService: RequestService,
         @Inject(PLATFORM_ID) private readonly platformId: Object
     ) {
         if (isPlatformBrowser(this.platformId)) {
@@ -58,52 +54,7 @@ export class MainLayout implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.menuItem = this.buildMenuItem(this.authService.user());
-    }
-
-    private buildMenuItem(userInfo: UserSession | null): MenuItem[] {
-        if (!userInfo) return [];
-        const tempGroup = this.authService.group();
-        if (!tempGroup) {
-            if (userInfo.isAdmin) {
-                return this.buildMenuAdmin();
-            }
-            return [];
-        }
-            
-        return this.convertToMenuItem(tempGroup.menublob);
-    }
-
-    private convertToMenuItem(routerItem: RouterItem[] | null): MenuItem[] {
-        if (routerItem && routerItem.length > 0) {
-            return routerItem.map((item: RouterItem) => {
-                const tempMenuItem: MenuItem = {};
-                tempMenuItem.label = item.label;
-                if (item.icon) {
-                    tempMenuItem.icon = item.icon;
-                }
-                if (item.routerLink) {
-                    tempMenuItem.routerLink = item.routerLink;
-                }
-                if (item.roles && item.roles.length > 0) {
-                    tempMenuItem.state = { roles: item.roles, menuItem: item };
-                }
-                if (item.items && item.items.length > 0) {
-                    tempMenuItem.items = this.convertToMenuItem(item.items);
-                }
-                return tempMenuItem;
-            });
-        }
-        return [];
-    }
-
-    private buildMenuAdmin() {
-        return [
-            { label: 'User', icon: 'pi pi-id-card', routerLink: ['/user'] },
-            { label: 'Menu', icon: 'pi pi-check-square', routerLink: ['/menus'] },
-            { label: 'Group', icon: 'pi pi-mobile', routerLink: ['/group'] },
-            { label: 'Permission', icon: 'pi pi-table', routerLink: ['/permission'] },
-        ];
+        this.menuItem = this.authService.menuItemList ?? [];
     }
 
     logout() {

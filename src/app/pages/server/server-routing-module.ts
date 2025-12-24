@@ -1,4 +1,4 @@
 import { Routes } from '@angular/router';
-import { ServerConfig } from './server-config/server-config';
+import { ConfigComponent } from './config-component/config-component';
 
-export default [{ path: '', component: ServerConfig }] as Routes;
+export default [{ path: '', component: ConfigComponent }] as Routes;

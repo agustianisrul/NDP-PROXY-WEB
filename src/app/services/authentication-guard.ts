@@ -11,7 +11,7 @@ export const authenticationGuard: CanActivateFn = (route, state) => {
 
     if (!isPlatformBrowser(platformId)) return of(true);
 
-    if (auth.isLoading) return of(false); // wait until loaded
+    if (auth.isLoading) return of(false);
 
     if (auth.currentUser) return of(true);
 

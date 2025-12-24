@@ -8,6 +8,7 @@ import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
 import { AuthenticationService } from './services/authentication-service';
+import { DialogService } from 'primeng/dynamicdialog';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -26,6 +27,7 @@ export const appConfig: ApplicationConfig = {
             },
         }),
         MessageService,
+        DialogService,
         provideAppInitializer(() => {
             // injection happens inside the initializer's injection context
             const authenticationService = inject(AuthenticationService);

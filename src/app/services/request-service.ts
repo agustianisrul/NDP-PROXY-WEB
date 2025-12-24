@@ -18,10 +18,14 @@ export class RequestService {
         let headers: any = {
             'Content-Type': 'application/json',
             'x-client': 'angular-ssr',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'If-None-Match': ''
         };
 
         if (isPlatformServer(this.platformId)) {
-            const cookie = (global as any)['cookieHeader'];
+            const cookie = (globalThis as any)['cookieHeader'];
             if (cookie) {
                 headers['Cookie'] = cookie; // ✅ forward browser cookie
             }
@@ -33,10 +37,14 @@ export class RequestService {
     private get defaultUploadOptions() {
         let headers: any = {
             'x-client': 'angular-ssr',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'If-None-Match': ''
         };
 
         if (isPlatformServer(this.platformId)) {
-            const cookie = (global as any)['cookieHeader'];
+            const cookie = (globalThis as any)['cookieHeader'];
             if (cookie) {
                 headers['Cookie'] = cookie; // ✅ forward browser cookie
             }
@@ -50,23 +58,40 @@ export class RequestService {
         return result.pipe(
             take(1),
             map((res: any) => {
+                if (res.code !== 200) {
+                    const messageError = res.data ? res.data : res.message;
+                    const titleMessage = res.data ? res.message : 'Error';
+                    this.displayMessageService('error', titleMessage, messageError);
+                }
                 return { code: res.code, message: res.message, data: res.data };
             }),
             catchError((error) => {
-                if (isPlatformBrowser(this.platformId)) {
-                    queueMicrotask(() => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Request Failed',
-                            detail: error?.error?.message || error?.message || 'Unknown error',
-                            life: 5000,
-                        });
-                    });
-                }
-
+                const headerTitle = error?.error?.data ? error?.error?.message : 'Error';
+                const displayMessage = error?.error?.data?.username || error?.error?.data || error?.error?.message || 'Unknown error';
+                this.displayMessageService('error', headerTitle, this.objectToString(displayMessage));
                 return of({ code: error.status, message: error.error, data: null });
             })
         );
+    }
+
+    private objectToString(obj: any, indent = ''): string {
+        if (obj === null) return 'null';
+        if (obj === undefined) return 'undefined';
+        if (typeof obj !== 'object') return String(obj);
+
+        if (Array.isArray(obj)) {
+            return `[${obj.map(item => this.objectToString(item)).join(', ')}]`;
+        }
+
+        const entries = Object.entries(obj);
+        if (entries.length === 0) return '{}';
+
+        const newIndent = indent + '  ';
+        const items = entries.map(([key, value]) => {
+            return `${newIndent}${key}: ${this.objectToString(value, newIndent)}`;
+        });
+
+        return `${items.join(',\n')}\n${indent}`;
     }
 
     getBackend<T>(endpoint: string): Observable<ApiResponse<T>> {
@@ -75,5 +100,11 @@ export class RequestService {
 
     postBackend<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
         return this.handleResponse(this.http.post<T>(`${endpoint}`, body, this.defaultOptions));
+    }
+
+    displayMessageService(severity: string, headerTitle: string, detailMessage: string): void {
+        if (isPlatformBrowser(this.platformId)) {
+            this.messageService.add({ severity: severity, summary: headerTitle, detail: detailMessage, life: 5000 });
+        }
     }
 }

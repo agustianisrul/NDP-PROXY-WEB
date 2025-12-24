@@ -9,7 +9,7 @@ import { Condition } from '../../model/others/ConditionQuery';
 import { JoinQuery } from '../../model/others/JoinQuery';
 import { Order } from '../../model/others/OrderQuery';
 import db from '../config/client';
-import { nowJSDate } from '../config/date-utils';
+import { DateUtils } from '../config/date-utils';
 import { GenericRepository } from '../repositories/generic.repository';
 import { ResponseHelper } from '../utils/ResponseHelper';
 
@@ -24,7 +24,7 @@ export class MenuController {
                 nameMenu: menu.nameMenu,
                 pathMenu: menu.pathMenu,
                 iconMenu: menu.iconMenu,
-                deleteable: menu.deleteable === 1,
+                deleted: menu.deleted,
             }));
             return ResponseHelper.success(res, menuDetailList);
         }
@@ -52,7 +52,7 @@ export class MenuController {
                         nameMenu: record.tm_menus_nameMenu,
                         pathMenu: record.tm_menus_pathMenu,
                         iconMenu: record.tm_menus_iconMenu,
-                        deleteable: record.tm_menus_deleteable === 1,
+                        deleted: record.tm_menus_deleted,
                         roleList: [],
                     });
                 }
@@ -63,7 +63,7 @@ export class MenuController {
                         idRole: record.tm_role_idRole,
                         rolename: record.tm_role_rolename,
                         roledescription: record.tm_role_roledescription,
-                        deleteable: record.tm_role_deleteable === 1,
+                        deleted: record.tm_role_deleted,
                     });
                 }
             }
@@ -99,8 +99,8 @@ export class MenuController {
                 pathMenu: requestBodyMenu.pathMenu || requestBodyMenu.pathMenu !== '' ? requestBodyMenu.pathMenu : null,
                 iconMenu: requestBodyMenu.iconMenu,
                 created_by: userInfo?.iduser,
-                created_date: nowJSDate(),
-                deleteable: 1,
+                created_date: DateUtils.nowJSDate(),
+                deleted: true,
             };
             await db.transaction(async (trx) => {
                 // Insert into Menu
@@ -136,8 +136,8 @@ export class MenuController {
                 pathMenu: requestBodyMenu.pathMenu || requestBodyMenu.pathMenu !== '' ? requestBodyMenu.pathMenu : null,
                 iconMenu: requestBodyMenu.iconMenu,
                 created_by: userInfo?.iduser,
-                created_date: nowJSDate(),
-                deleteable: 1,
+                created_date: DateUtils.nowJSDate(),
+                deleted: true,
             };
             const tempCondition: Condition<Menu>[] = [{ column: 'idMenu', operator: '=', value: requestBodyMenu.idMenu }];
             await db.transaction(async (trx) => {
@@ -164,16 +164,34 @@ export class MenuController {
 
     static async deleteMenu(req: Request, res: Response) {
         try {
-            const requestBodyMenu: MenuRole = req.body;
-            const menuList: Menu[] = await genericRepository.delete<Menu>('tm_menus', [
-                { column: 'idMenu', operator: '=', value: requestBodyMenu.idMenu },
-            ]);
-            if (menuList.length === 0) {
-                return ResponseHelper.error(res, 'Unable to delete data!');
+            const requestBody = req.body;
+            if (Array.isArray(requestBody)) {
+                for (const detail of requestBody) {
+                    if (await MenuController.checkMenuExistInGroup(detail.idMenu)) {
+                        return ResponseHelper.error(res, `Menu ${detail.nameMenu} is still assigned to a group, cannot be deleted!`);
+                    }
+                    await MenuController.deleteMenuByIdMenu(detail.idMenu);
+                }
+            } else {
+                if (await MenuController.checkMenuExistInGroup(requestBody.idMenu)) {
+                    return ResponseHelper.error(res, `Menu ${requestBody.nameMenu} is still assigned to a group, cannot be deleted!`);
+                }
+                await MenuController.deleteMenuByIdMenu(requestBody.idMenu);
             }
             ResponseHelper.success(res);
         } catch (error) {
             ResponseHelper.error(res, error);
         }
+    }
+
+    private static async checkMenuExistInGroup(idMenu: any): Promise<boolean> {
+        const existingMenu: any[] = await genericRepository.select<Record<string, any>>('tm_group_menu_role', [], [
+            { column: 'idMenu', operator: '=', value: idMenu },
+        ]);
+        return existingMenu.length > 0;
+    }
+
+    private static async deleteMenuByIdMenu(idMenu: any): Promise<void> {
+        await genericRepository.delete<Menu>('tm_menu_role', [{ column: 'idMenu', operator: '=', value: idMenu }]);
     }
 }

@@ -44,7 +44,8 @@
                     <!-- Password -->
                     <div class="flex flex-col mb-2">
                         <label for="password" class="mb-2">Password</label>
-                        <p-password
+                        <p-password formControlName="password" [feedback]="false" autocomplete="off" [toggleMask]="true" fluid />
+                        <!-- <p-password
                             type="text"
                             class="w-full"
                             formControlName="password"
@@ -53,13 +54,17 @@
                             [feedback]="false"
                             autocomplete="off"
                             [showClear]="true"
-                        />
+                        /> -->
+                    </div>
+                    <div class="flex flex-col mb-2">
+                        <label for="envi_user" class="mb-2">Environment user</label>
+                        <p-select formControlName="envi_user" [options]="environmentOptions" optionLabel="label" optionValue="value" class="w-full md:w-56" />
                     </div>
                 </div>
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mt-4 py-6">
-                    <button pButton type="submit" class="w-full sm:w-1/2" [disabled]="!registerForm.valid" label="Register"></button>
-                    <button pButton type="button" class="w-full sm:w-1/2" label="Cancel" severity="secondary" (click)="onCancel()"></button>
+                    <button *appOnlyBrowser pButton type="submit" class="w-full sm:w-1/2" [disabled]="!registerForm.valid" label="Register"></button>
+                    <button *appOnlyBrowser pButton type="button" class="w-full sm:w-1/2" label="Cancel" severity="secondary" (click)="onCancel()"></button>
                 </div>
             </form>
 
@@ -109,15 +114,15 @@
             </div>
         </div>
         <!-- Button Section -->
-        <div class="flex justify-center gap-4 mt-6">
-            <p-button
+        <!-- <div class="flex justify-center gap-4 mt-6">
+            <p-button *appOnlyBrowser
                 label="Ok"
                 severity="secondary"
                 (click)="cancelError()"
                 (keydown.enter)="cancelError()"
                 (keyup.space)="cancelError()"
             ></p-button>
-        </div>
+        </div> -->
     </div>
 </div>
 <div *ngIf="successRegistration.success" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -145,14 +150,14 @@
             </div>
         </div>
         <!-- Button Section -->
-        <div class="flex justify-center gap-4 mt-6">
-            <p-button
+        <!-- <div class="flex justify-center gap-4 mt-6">
+            <p-button *appOnlyBrowser
                 label="Login to continue"
                 severity="secondary"
                 (click)="cancelSuccess()"
                 (keydown.enter)="cancelSuccess()"
                 (keyup.space)="cancelSuccess()"
             ></p-button>
-        </div>
+        </div> -->
     </div>
 </div>

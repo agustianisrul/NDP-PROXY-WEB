@@ -6,4 +6,6 @@ export interface UserSession {
     mobile: string;
     email: string;
     isAdmin: boolean;
+    envi_user: string;
+    accessedDate: string;
 }

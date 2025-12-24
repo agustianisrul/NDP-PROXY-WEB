@@ -13,7 +13,14 @@ export class GenericRepository {
 
     private applyConditions<T>(queryBuilder: Knex.QueryBuilder, conditions: Condition<T>[]): void {
         for (const { column, operator = '=', value } of conditions) {
-            queryBuilder.where(column, operator, value as any);
+            switch (operator) {
+                case 'like': 
+                    queryBuilder.whereILike(column, value as any)
+                    break;
+                default:
+                    queryBuilder.where(column, operator, value as any);
+                    break;
+            }
         }
     }
 
@@ -100,7 +107,6 @@ export class GenericRepository {
             const rows = await query;
             return rows as unknown as T[];
         } catch (error) {
-            console.error('❌ Error in select query:', error);
             throw error;
         }
     }
@@ -131,7 +137,6 @@ export class GenericRepository {
 
             return (await query) as T[];
         } catch (error) {
-            console.error('error select query', error);
             throw error;
         }
     }
@@ -157,7 +162,6 @@ export class GenericRepository {
 
             return (await query.first()) as T | null;
         } catch (error) {
-            console.error('error findOne query', error);
             throw error;
         }
     }
@@ -170,7 +174,6 @@ export class GenericRepository {
                 .insert(data as any)
                 .returning('*')) as T[];
         } catch (error) {
-            console.error('error insert query', error);
             throw error;
         }
     }
@@ -189,7 +192,6 @@ export class GenericRepository {
                 .update(data as any)
                 .returning('*')) as T[];
         } catch (error) {
-            console.error('error update query', error);
             throw error;
         }
     }
@@ -203,7 +205,6 @@ export class GenericRepository {
                 .del()
                 .returning('*')) as T[];
         } catch (error) {
-            console.error('error delete query', error);
             throw error;
         }
     }

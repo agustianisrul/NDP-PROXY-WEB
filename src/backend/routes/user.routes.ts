@@ -10,6 +10,7 @@ userRouter.get('/user/list-user', asyncHandler(authBearerMiddleware), asyncHandl
 userRouter.get('/user/list-user-group', asyncHandler(authBearerMiddleware), asyncHandler(UserController.getAllUserGroup));
 userRouter.post('/user/add-user', asyncHandler(authBearerMiddleware), asyncHandler(UserController.addUser));
 userRouter.post('/user/edit-user', asyncHandler(authBearerMiddleware), asyncHandler(UserController.editUser));
+userRouter.post('/user/edit-profile-user', asyncHandler(authBearerMiddleware), asyncHandler(UserController.editProfileUser));
 userRouter.post('/user/delete-user', asyncHandler(authBearerMiddleware), asyncHandler(UserController.deleteUser));
 
 export default userRouter;

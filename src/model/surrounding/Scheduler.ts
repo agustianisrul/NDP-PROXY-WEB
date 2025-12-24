@@ -10,4 +10,5 @@ export interface Scheduler {
     inMinute: string;
     inSecond: string;
     status: boolean;
+    typeName: string;
 }

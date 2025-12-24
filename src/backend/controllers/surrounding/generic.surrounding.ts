@@ -22,17 +22,29 @@ export class GenericSurrounding {
         }
 
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000); // ⏱ 10s timeout
+        const timeout = setTimeout(() => controller.abort(), 10000);
 
         try {
+            // 🚫 ADD CACHE BUSTING FOR GET REQUESTS
+            const finalUrl = backendUrl;
+            // if (methodType === 'GET') {
+            //     const separator = backendUrl.includes('?') ? '&' : '?';
+            //     finalUrl = `${backendUrl}${separator}_t=${Date.now()}`;
+            // }
+
             // 🌐 Build Request
             const requestOptions: RequestInit = {
                 method: methodType,
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0',
+                    'If-None-Match': '' // 👈 Add this
                 },
                 signal: controller.signal,
+                cache: 'no-store' as RequestCache, // 👈 CRITICAL: Force no caching
             };
 
             if (['POST', 'PUT'].includes(methodType) && payload) {
@@ -40,24 +52,27 @@ export class GenericSurrounding {
             }
 
             // 🧭 Construct Full URL
-            const fullUrl = new URL(backendUrl, config.app.apiUrl).toString();
+            const fullUrl = new URL(finalUrl, config.app.apiUrl).toString(); // Use finalUrl here
 
             const response = await fetch(fullUrl, requestOptions);
 
             // ❗ Non-OK response
             if (!response.ok) {
                 let errorText = '';
+                let dataDetail = null;
                 try {
                     const errJson = await response.json();
                     errorText = errJson.message || response.statusText;
+                    dataDetail = errJson.data || null
                 } catch {
                     errorText = await response.text();
+                    dataDetail = errorText;
                 }
 
                 return {
                     code: response.status as ResponseCode,
                     message: errorText || 'Request failed',
-                    data: null,
+                    data: dataDetail,
                 };
             }
 

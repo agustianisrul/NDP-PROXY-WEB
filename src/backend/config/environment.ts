@@ -12,7 +12,15 @@ dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
 // timezone (optional, for server-side Date)
 process.env.TZ = process.env['TIMEZONE'] || 'Asia/Jakarta';
-const SESSION_SECRET = 'ajinomotocapmangkokmerahdelimaputihputihmel';
+
+const validateAndFormatSecretKey = (inputKey: string): string => {
+    let cleanedKey = inputKey.replace(/[^A-Za-z0-9]/g, '');
+    if (cleanedKey.length < 46) {
+        const paddingNeeded = 46 - cleanedKey.length;
+        cleanedKey += 'x'.repeat(paddingNeeded);
+    }
+    return cleanedKey;
+}
 
 export const config = {
     env: nodeEnv,
@@ -21,8 +29,8 @@ export const config = {
     cookie: {
         name: process.env['COOKIE_NAME'] || 'app_session',
         maxAge: parseInt(process.env['COOKIE_MAX_AGE_MS'] || '3600000', 10),
-        secret: SESSION_SECRET, //base64url.encode(new TextEncoder().encode(SESSION_SECRET)),
-        secure: false, // process.env['NODE_ENV'] === 'production',
+        secret: validateAndFormatSecretKey(process.env['SECRET_KEY_BASE'] || '7SI9QbfZy9zXuDb6O3SGG0okP0FU75Yh2RYkLskg4SBMkx'),
+        secure: false,
         sameSite: (process.env['SESSION_SAMESITE'] as 'lax' | 'strict' | 'none') || 'lax',
     },
 

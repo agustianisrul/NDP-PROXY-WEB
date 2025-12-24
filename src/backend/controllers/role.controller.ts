@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Role } from '../../model/base-entity/Role';
 import { RoleDetail } from '../../model/custom-entity/RoleDetail';
 import { UserSession } from '../../model/custom-entity/UserSession';
-import { nowJSDate } from '../config/date-utils';
+import { DateUtils } from '../config/date-utils';
 import { GenericRepository } from '../repositories/generic.repository';
 import { ResponseHelper } from '../utils/ResponseHelper';
 
@@ -16,7 +16,7 @@ export async function getAllRole(req: Request, res: Response) {
             idRole: role.idRole,
             rolename: role.rolename,
             roledescription: role.roledescription,
-            deleteable: role.deleteable === 1,
+            deleted: role.deleted,
         }));
         return ResponseHelper.success(res, roleDetailList);
     }
@@ -39,8 +39,8 @@ export async function addRole(req: Request, res: Response) {
             ...requestBodyRole,
             idRole: uuidv4(),
             created_by: userInfo?.iduser,
-            created_date: nowJSDate(),
-            deleteable: 1,
+            created_date: DateUtils.nowJSDate(),
+            deleted: true,
         };
         const insertRoleList: Role[] = await genericRepository.insert<Role>('tm_role', payloadInsert);
         if (insertRoleList.length === 0) {
@@ -59,8 +59,8 @@ export async function editRole(req: Request, res: Response) {
         const payloadInsert: Partial<Role> = {
             ...requestBodyRole,
             updated_by: userInfo?.iduser,
-            updated_date: nowJSDate(),
-            deleteable: requestBodyRole.deleteable ? 1 : 0,
+            updated_date: DateUtils.nowJSDate(),
+            deleted: requestBodyRole.deleted,
         };
         const roleList: Role[] = await genericRepository.update<Role>('tm_role', payloadInsert, [
             { column: 'idRole', operator: '=', value: requestBodyRole.idRole },
@@ -76,12 +76,13 @@ export async function editRole(req: Request, res: Response) {
 
 export async function deleteRole(req: Request, res: Response) {
     try {
-        const requestBodyRole: RoleDetail = req.body;
-        const roleList: Role[] = await genericRepository.delete<Role>('tm_role', [
-            { column: 'idRole', operator: '=', value: requestBodyRole.idRole },
-        ]);
-        if (roleList.length === 0) {
-            return ResponseHelper.error(res, 'Unable to delete data!');
+        const requestBody = req.body;
+        if (Array.isArray(requestBody)) {
+            for (const detail of requestBody) {
+                await genericRepository.delete<Role>('tm_role', [{ column: 'idRole', operator: '=', value: detail.idRole }]);
+            }
+        } else {
+            await genericRepository.delete<Role>('tm_role', [{ column: 'idRole', operator: '=', value: requestBody.idRole }]);
         }
         ResponseHelper.success(res);
     } catch (error) {

@@ -1,5 +1,5 @@
 export interface AuditTrailData {
     idaudit: number;
-    requestbody: Record<string, any>;
-    responsebody: Record<string, any>;
+    requestbody: Record<string, any> | null;
+    responsebody: Record<string, any> | null;
 }

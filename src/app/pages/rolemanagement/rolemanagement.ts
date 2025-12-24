@@ -3,19 +3,19 @@ import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ConfirmationService, MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { DialogService } from 'primeng/dynamicdialog';
 import { RoleDetail } from '../../../model/custom-entity/RoleDetail';
 import { ConfirmDelete } from '../../components/confirm-delete/confirm-delete';
-import { DialogDetail } from '../../components/dialog-detail/dialog-detail';
 import { ParentTable } from '../../components/parent-table';
 import { TableUniversal } from '../../components/table-universal/table-universal';
 
 @Component({
     standalone: true,
     selector: 'app-rolemanagement',
-    imports: [CommonModule, TableUniversal, BreadcrumbModule, RouterModule, DialogDetail, ConfirmDelete],
+    imports: [CommonModule, TableUniversal, BreadcrumbModule, RouterModule, ConfirmDelete],
     templateUrl: './rolemanagement.html',
     styleUrl: './rolemanagement.css',
-    providers: [ConfirmationService],
+    providers: [ConfirmationService, DialogService],
 })
 export class Rolemanagement extends ParentTable<RoleDetail> implements OnInit {
     home: MenuItem | undefined;

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ServerConfig } from './server-config';
+import { GroupListComponent } from './group-list-component';
 
-describe('ServerConfig', () => {
-  let component: ServerConfig;
-  let fixture: ComponentFixture<ServerConfig>;
+describe('GroupListComponent', () => {
+  let component: GroupListComponent;
+  let fixture: ComponentFixture<GroupListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ServerConfig]
+      imports: [GroupListComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ServerConfig);
+    fixture = TestBed.createComponent(GroupListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

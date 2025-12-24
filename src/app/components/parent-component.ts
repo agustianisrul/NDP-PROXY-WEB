@@ -1,67 +1,42 @@
-import { Directive, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Directive, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { GroupDetail } from '../../model/custom-entity/GroupDetail';
 import { RoleDetail } from '../../model/custom-entity/RoleDetail';
 import { UserSession } from '../../model/custom-entity/UserSession';
-import { RouterItem } from '../../model/others/RouterItem';
 import { AuthenticationService } from '../services/authentication-service';
 import { RoleEnumService } from '../services/role-enum-service';
+import { GroupDetail } from '../../model/custom-entity/GroupDetail';
 
 @Directive({
     selector: '[appParentComponent]',
 })
-export abstract class ParentComponent implements OnInit {
+export abstract class ParentComponent {
     protected readonly router = inject(Router);
     private readonly authenticationService = inject(AuthenticationService);
     protected readonly platformId = inject(PLATFORM_ID);
-    private _activeMenuItem: RouterItem | null = null;
-
-    ngOnInit(): void {
-        const groupDetail: GroupDetail | null = this.authenticationService.group();
-        const currentMenuItem = this.authenticationService.lastMenuAccessed();
-        const routerItemList: RouterItem[] | null = groupDetail?.menublob && groupDetail.menublob.length > 0 ? groupDetail.menublob : null;
-        const routerItem: RouterItem | null = this.findMenuItemByUrl(routerItemList, this.router.url, currentMenuItem?.label ?? '');
-        if (routerItem) {
-            this._activeMenuItem = routerItem;
-        } else {
-            this._activeMenuItem = {
-                label: currentMenuItem?.label || '',
-                icon: '',
-                items: [],
-                roles: [],
-                routerLink: currentMenuItem?.routerLink,
-            };
-        }
-    }
-
-    private findMenuItemByUrl(routerItemList: RouterItem[] | null, currentUrl: string, currentLabel: string): RouterItem | null {
-        if (!routerItemList?.length) return null;
-
-        for (const routerItem of routerItemList) {
-            if (routerItem?.routerLink && currentUrl.includes(routerItem.routerLink) && routerItem.label === currentLabel) {
-                return routerItem;
-            }
-            if (routerItem.items?.length) {
-                const found = this.findMenuItemByUrl(routerItem.items, currentUrl, currentLabel);
-                if (found) return found;
-            }
-        }
-        return null;
-    }
 
     protected hasRole(roleName: string): boolean {
-        if (this.currentUser?.isAdmin === true) return true;
+        if (this.currentUser?.isAdmin === true && !this.currentGroup) {
+            if (['CREATE', 'EDIT', 'DELETE'].includes(roleName)) {
+                return true;
+            }
+            return false;
+        }
 
-        const activeMenuItem = this._activeMenuItem;
+        const activeMenuItem = this.authenticationService.lastMenuAccessed();
         const expectedRoleValue = RoleEnumService.getRoleValue(roleName);
-        if (!expectedRoleValue || !activeMenuItem?.roles?.length) return false;
+        if (!expectedRoleValue || !activeMenuItem?.state?.['roleList']?.length) return false;
 
-        const roles = activeMenuItem.roles as string[];
-        return roles.includes(expectedRoleValue);
+        const roles = activeMenuItem.state?.['roleList'];
+        const tempRoles = roles.map((role: RoleDetail) => role.rolename);
+        return tempRoles.includes(expectedRoleValue);
     }
 
     protected get currentUser(): UserSession | null {
         return this.authenticationService.user();
+    }
+
+    protected get currentGroup(): GroupDetail | null {
+        return this.authenticationService.group();
     }
 
     protected get roleList(): RoleDetail[] | null {
@@ -73,7 +48,22 @@ export abstract class ParentComponent implements OnInit {
     }
 
     protected get currentMenuLabel(): string {
-        const currentMenuItem = this.authenticationService.lastMenuAccessed();
-        return currentMenuItem?.label ? currentMenuItem.label : this.router.url.replaceAll('/', '');
+        return this.authenticationService.lastMenuAccessed()?.label ?? 'NONE';
     }
+
+    protected get lastSuccessLogin(): String | null {
+        return this.authenticationService.lastSuccessLogin()
+    }
+
+    protected get lastFailedLogin(): String | null {
+        return this.authenticationService.lastFailedLogin()
+    }
+
+    protected get isPasswordExpired(): boolean | null {
+        return this.authenticationService.isPasswordExpired()
+    }
+
+    protected get dashboardAutoRefresh(): number | null {
+        return this.authenticationService.dashboardAutoRefresh();
+    }    
 }

@@ -3,7 +3,7 @@ import { UserSession } from '../../../model/custom-entity/UserSession';
 import { DashboardData } from '../../../model/surrounding/DashboardData';
 import { DashboardDetail } from '../../../model/surrounding/DashboardDetail';
 import { DashboardFileActivity } from '../../../model/surrounding/DashboardFileActivity';
-import { formatDate } from '../../config/date-utils';
+import { DateUtils } from '../../config/date-utils';
 import { ResponseHelper } from '../../utils/ResponseHelper';
 import { GenericSurrounding } from './generic.surrounding';
 
@@ -11,8 +11,8 @@ export class DashboardController {
     static async getDashboardData(req: Request, res: Response) {
         const userInfo: UserSession = (req.session as any).user;
         const payload = {
-            startDate: formatDate(req.body.selectedDate[0], 'yyyy-MM-dd'),
-            endDate: formatDate(req.body.selectedDate[1], 'yyyy-MM-dd'),
+            startDate: DateUtils.formatToString(req.body.selectedDate[0], 'yyyy-MM-dd'),
+            endDate: DateUtils.formatToString(req.body.selectedDate[1], 'yyyy-MM-dd'),
         };
         const endpointTarget = '/ndp/proxy/dashboard';
         const responseData: any = await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'POST', payload);
@@ -52,5 +52,12 @@ export class DashboardController {
             return ResponseHelper.success(res, resultData);
         }
         return ResponseHelper.success(res);
+    }
+
+    static async resendData(req: Request, res: Response) {
+        const userInfo: UserSession = (req.session as any).user;
+        const requestBodyData: DashboardFileActivity = req.body;
+        const endpointTarget = `/ndp/proxy/redownload/${requestBodyData.keyId}`;
+        return ResponseHelper.customResponse(res, await GenericSurrounding.requestMicroService(userInfo, endpointTarget, 'GET'));
     }
 }
